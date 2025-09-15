@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title>Your Transactions</title>
+	<link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+	<h2>Your Transactions</h2>
+	<p style="text-align:center;">Showing transactions for your account only.</p>
+	<table>
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Account Number</th>
+				<th>Type</th>
+				<th>Amount</th>
+				<th>Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="transaction : ${transactions}">
+				<td th:text="${transaction.id}"></td>
+				<td th:text="${transaction.account.accountNumber}"></td>
+				<td th:text="${transaction.type}"></td>
+				<td th:text="${transaction.amount}"></td>
+				<td th:text="${transaction.timestamp}"></td>
+			</tr>
+		</tbody>
+	</table>
+	<a href="/accounts">Back to Accounts</a>
+</body>
+</html>
