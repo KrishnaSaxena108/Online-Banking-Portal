@@ -1,6 +1,7 @@
 package com.onlinebanking.userservice.controller;
 
 import com.onlinebanking.userservice.service.UserService;
+import com.onlinebanking.userservice.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,14 @@ import com.onlinebanking.userservice.model.User;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("User service is running! JWT implementation is active.");
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> user) {
@@ -44,7 +53,8 @@ public class UserController {
         Map<String, Object> resp = new HashMap<>();
         Optional<User> userOpt = userService.authenticate(username, password);
         if (userOpt.isPresent()) {
-            resp.put("token", "fake-jwt-token"); // TODO: Replace with real JWT
+            String token = jwtUtil.generateToken(username);
+            resp.put("token", token);
             return ResponseEntity.ok(resp);
         } else {
             resp.put("error", "Invalid username or password");
