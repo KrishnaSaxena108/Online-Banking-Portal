@@ -79,18 +79,18 @@
                                       th:text="${transaction.id}"></span>
                             </td>
                             <td>
-                                <span style="font-weight: 500;" th:text="${transaction.account.accountNumber}"></span>
+                                <span style="font-weight: 500;" th:text="${transaction.accountNumber}"></span>
                             </td>
                             <td>
                                 <span class="transaction-type" th:text="${transaction.type}" 
-                                      th:classappend="${transaction.type == 'CREDIT' ? 'credit' : 'debit'}">
+                                      th:classappend="${transaction.type == 'CREDIT' or transaction.type == 'DEPOSIT' ? 'credit' : 'debit'}">
                                 </span>
                             </td>
                             <td>
-                                <span th:class="${transaction.type == 'CREDIT' ? 'credit-amount' : 'debit-amount'}"
+                                <span th:class="${transaction.type == 'CREDIT' or transaction.type == 'DEPOSIT' ? 'credit-amount' : 'debit-amount'}"
                                       style="font-weight: 600; font-size: 1.1rem;">
-                                    <span th:if="${transaction.type == 'CREDIT'}">+</span>
-                                    <span th:if="${transaction.type == 'DEBIT'}">-</span>
+                                    <span th:if="${transaction.type == 'CREDIT' or transaction.type == 'DEPOSIT'}">+</span>
+                                    <span th:if="${transaction.type == 'DEBIT' or transaction.type == 'WITHDRAWAL'}">-</span>
                                     $<span th:text="${#numbers.formatDecimal(transaction.amount, 0, 2)}"></span>
                                 </span>
                             </td>
@@ -147,6 +147,25 @@
             font-size: 0.9rem;
         }
         .transaction-type.debit {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        /* Handle the new transaction types */
+        .transaction-type:contains("DEPOSIT") {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .transaction-type:contains("WITHDRAWAL") {
             background: rgba(231, 76, 60, 0.1);
             color: #e74c3c;
             padding: 0.3rem 0.8rem;

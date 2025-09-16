@@ -3,7 +3,9 @@ package com.onlinebanking.accountservice.controller;
 import com.onlinebanking.accountservice.model.Account;
 import com.onlinebanking.accountservice.service.AccountService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/accounts")
@@ -32,5 +34,40 @@ public class AccountController {
     @GetMapping("/user/{username}")
     public List<Account> getAccountsByUsername(@PathVariable String username) {
         return accountService.getAccountsByUsername(username);
+    }
+
+    @GetMapping("/number/{accountNumber}")
+    public Account getAccountByAccountNumber(@PathVariable String accountNumber) {
+        return accountService.getAccountByAccountNumber(accountNumber);
+    }
+
+    @PostMapping("/{accountNumber}/deposit")
+    public ResponseEntity<?> deposit(@PathVariable String accountNumber, @RequestBody Map<String, Double> request) {
+        Double amount = request.get("amount");
+        if (amount == null || amount <= 0) {
+            return ResponseEntity.badRequest().body("Invalid amount");
+        }
+        
+        Account updatedAccount = accountService.deposit(accountNumber, amount);
+        if (updatedAccount != null) {
+            return ResponseEntity.ok(updatedAccount);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/{accountNumber}/withdraw")
+    public ResponseEntity<?> withdraw(@PathVariable String accountNumber, @RequestBody Map<String, Double> request) {
+        Double amount = request.get("amount");
+        if (amount == null || amount <= 0) {
+            return ResponseEntity.badRequest().body("Invalid amount");
+        }
+        
+        Account updatedAccount = accountService.withdraw(accountNumber, amount);
+        if (updatedAccount != null) {
+            return ResponseEntity.ok(updatedAccount);
+        } else {
+            return ResponseEntity.badRequest().body("Insufficient funds or account not found");
+        }
     }
 }

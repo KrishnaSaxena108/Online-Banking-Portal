@@ -4,6 +4,7 @@ import com.onlinebanking.accountservice.model.Account;
 import com.onlinebanking.accountservice.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AccountService {
@@ -27,5 +28,27 @@ public class AccountService {
 
     public List<Account> getAccountsByUsername(String username) {
         return accountRepository.findByUsername(username);
+    }
+
+    public Account getAccountByAccountNumber(String accountNumber) {
+        return accountRepository.findByAccountNumber(accountNumber);
+    }
+
+    public Account deposit(String accountNumber, Double amount) {
+        Account account = accountRepository.findByAccountNumber(accountNumber);
+        if (account != null) {
+            account.setBalance(account.getBalance() + amount);
+            return accountRepository.save(account);
+        }
+        return null;
+    }
+
+    public Account withdraw(String accountNumber, Double amount) {
+        Account account = accountRepository.findByAccountNumber(accountNumber);
+        if (account != null && account.getBalance() >= amount) {
+            account.setBalance(account.getBalance() - amount);
+            return accountRepository.save(account);
+        }
+        return null;
     }
 }
