@@ -38,6 +38,12 @@
             </p>
         </div>
 
+        <!-- Error Message -->
+        <div th:if="${error}" class="card" style="background: #ffebee; border: 1px solid #f44336; color: #c62828;">
+            <h3 style="margin-bottom: 0.5rem; color: #c62828;">⚠️ Error</h3>
+            <p th:text="${error}" style="margin: 0;">Error message</p>
+        </div>
+
         <!-- Accounts Table -->
         <div class="card">
             <div class="table-container">

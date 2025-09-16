@@ -20,6 +20,7 @@ import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.time.LocalDateTime;
 
 @Controller
@@ -29,20 +30,181 @@ public class AccountController {
     private RestTemplate restTemplate;
 
     @GetMapping("/accounts")
-    public String accounts(Model model, @SessionAttribute("username") String username) {
-        // Fetch accounts for the logged-in user
-        List<Map<String, Object>> accounts = restTemplate.getForObject(
-            "http://localhost:8081/accounts/user/" + username, List.class);
-        model.addAttribute("accounts", accounts);
+    public String accounts(Model model, @SessionAttribute(value = "username", required = false) String username) {
+        // Check if user is logged in
+        if (username == null || username.isEmpty()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            // Fetch accounts for the logged-in user
+            List<Map<String, Object>> accounts = restTemplate.getForObject(
+                "http://localhost:8081/accounts/user/" + username, List.class);
+            
+            // Handle null response
+            if (accounts == null) {
+                accounts = new ArrayList<>();
+            }
+            
+            model.addAttribute("accounts", accounts);
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            // Service unavailable
+            System.err.println("Account service unavailable: " + e.getMessage());
+            model.addAttribute("accounts", new ArrayList<>());
+            model.addAttribute("error", "Account service is currently unavailable. Please ensure the account service is running on port 8081.");
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            // HTTP error (4xx, 5xx)
+            System.err.println("HTTP error fetching accounts: " + e.getMessage());
+            model.addAttribute("accounts", new ArrayList<>());
+            model.addAttribute("error", "Error fetching accounts: " + e.getStatusCode() + " - " + e.getStatusText());
+        } catch (Exception e) {
+            System.err.println("Error fetching accounts: " + e.getMessage());
+            model.addAttribute("accounts", new ArrayList<>());
+            model.addAttribute("error", "Unexpected error occurred: " + e.getMessage());
+        }
+        
         return "accounts";
     }
 
+    // Health check endpoint for testing services
+    @GetMapping("/test-services")
+    @ResponseBody
+    public ResponseEntity<String> testServices() {
+        StringBuilder result = new StringBuilder();
+        
+        try {
+            // Test Account Service
+            String accountUrl = "http://localhost:8081/accounts";
+            Object accountResponse = restTemplate.getForObject(accountUrl, Object.class);
+            result.append("✅ Account Service (8081): OK\n");
+        } catch (Exception e) {
+            result.append("❌ Account Service (8081): " + e.getMessage() + "\n");
+        }
+        
+        try {
+            // Test Transaction Service
+            String transactionUrl = "http://localhost:8082/transactions";
+            Object transactionResponse = restTemplate.getForObject(transactionUrl, Object.class);
+            result.append("✅ Transaction Service (8082): OK\n");
+        } catch (Exception e) {
+            result.append("❌ Transaction Service (8082): " + e.getMessage() + "\n");
+        }
+        
+        return ResponseEntity.ok(result.toString());
+    }
+
+    // Debug endpoint for testing transaction filtering
+    @GetMapping("/debug-transactions")
+    @ResponseBody
+    public ResponseEntity<String> debugTransactions(@RequestParam(required = false) String username,
+                                                   @RequestParam(required = false) String accountNumber) {
+        StringBuilder result = new StringBuilder();
+        result.append("=== TRANSACTION DEBUG ENDPOINT ===\n\n");
+        
+        if (username == null) username = "testuser"; // default for testing
+        
+        result.append("Testing with username: ").append(username).append("\n");
+        result.append("Testing with accountNumber: ").append(accountNumber != null ? accountNumber : "ALL").append("\n\n");
+        
+        try {
+            if (accountNumber != null && !accountNumber.isEmpty()) {
+                String url = "http://localhost:8082/transactions/account/" + accountNumber;
+                result.append("Testing URL: ").append(url).append("\n");
+                List<Map<String, Object>> transactions = restTemplate.getForObject(url, List.class);
+                result.append("Result: ").append(transactions != null ? transactions.size() + " transactions found" : "null response").append("\n");
+                if (transactions != null && !transactions.isEmpty()) {
+                    result.append("Sample transaction: ").append(transactions.get(0).toString()).append("\n");
+                }
+            } else {
+                String url = "http://localhost:8082/transactions/user/" + username;
+                result.append("Testing URL: ").append(url).append("\n");
+                List<Map<String, Object>> transactions = restTemplate.getForObject(url, List.class);
+                result.append("Result: ").append(transactions != null ? transactions.size() + " transactions found" : "null response").append("\n");
+                if (transactions != null && !transactions.isEmpty()) {
+                    result.append("Sample transaction: ").append(transactions.get(0).toString()).append("\n");
+                }
+            }
+        } catch (Exception e) {
+            result.append("ERROR: ").append(e.getMessage()).append("\n");
+            result.append("Exception type: ").append(e.getClass().getSimpleName()).append("\n");
+        }
+        
+        return ResponseEntity.ok(result.toString());
+    }
+
     @GetMapping("/transactions")
-    public String transactions(Model model, @SessionAttribute("accountNumber") String accountNumber) {
-        // Fetch only transactions for the user's account number
-        String url = "http://localhost:8082/transactions/account/" + accountNumber;
-        List<Map<String, Object>> transactions = restTemplate.getForObject(url, List.class);
+    public String transactions(Model model, 
+                             @SessionAttribute(value = "username", required = false) String username,
+                             @RequestParam(required = false) String accountNumber,
+                             HttpSession session) {
+        
+        // Debug logging
+        System.out.println("=== TRANSACTIONS DEBUG ===");
+        System.out.println("Username from session: " + username);
+        System.out.println("Account number parameter: " + accountNumber);
+        
+        // Check if user is logged in
+        if (username == null || username.isEmpty()) {
+            System.out.println("No username in session, redirecting to login");
+            return "redirect:/login";
+        }
+        
+        List<Map<String, Object>> transactions = null;
+        String serviceUrl = "";
+        
+        try {
+            if (accountNumber != null && !accountNumber.isEmpty()) {
+                // Fetch transactions for a specific account
+                serviceUrl = "http://localhost:8082/transactions/account/" + accountNumber;
+                System.out.println("Fetching transactions for account: " + accountNumber);
+                System.out.println("Service URL: " + serviceUrl);
+                transactions = restTemplate.getForObject(serviceUrl, List.class);
+            } else {
+                // Fetch all transactions for the logged-in user
+                serviceUrl = "http://localhost:8082/transactions/user/" + username;
+                System.out.println("Fetching all transactions for user: " + username);
+                System.out.println("Service URL: " + serviceUrl);
+                transactions = restTemplate.getForObject(serviceUrl, List.class);
+            }
+            
+            System.out.println("Transactions received: " + (transactions != null ? transactions.size() : "null"));
+            
+            // Handle null response
+            if (transactions == null) {
+                transactions = new ArrayList<>();
+                System.out.println("Null response from service, using empty list");
+            }
+            
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            // Service unavailable
+            System.err.println("Transaction service unavailable: " + e.getMessage());
+            transactions = new ArrayList<>();
+            model.addAttribute("error", "Transaction service is currently unavailable. Please ensure the transaction service is running on port 8082. Service URL: " + serviceUrl);
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            // HTTP error (4xx, 5xx)
+            System.err.println("HTTP error fetching transactions: " + e.getMessage());
+            transactions = new ArrayList<>();
+            if (e.getStatusCode().value() == 404) {
+                if (accountNumber != null) {
+                    model.addAttribute("error", "No transactions found for account: " + accountNumber);
+                } else {
+                    model.addAttribute("error", "No transactions found for user: " + username);
+                }
+            } else {
+                model.addAttribute("error", "Error fetching transactions: " + e.getStatusCode() + " - " + e.getStatusText() + ". Service URL: " + serviceUrl);
+            }
+        } catch (Exception e) {
+            // Other errors
+            System.err.println("Error fetching transactions: " + e.getMessage());
+            e.printStackTrace();
+            transactions = new ArrayList<>();
+            model.addAttribute("error", "Unexpected error occurred: " + e.getMessage() + ". Service URL: " + serviceUrl);
+        }
+        
+        System.out.println("Final transactions count: " + transactions.size());
+        
         model.addAttribute("transactions", transactions);
+        model.addAttribute("selectedAccountNumber", accountNumber);
         return "transactions";
     }
 
@@ -50,7 +212,12 @@ public class AccountController {
     @ResponseBody
     public ResponseEntity<String> deposit(@RequestParam String accountNumber, 
                                         @RequestParam Double amount,
-                                        @SessionAttribute("username") String username) {
+                                        @SessionAttribute(value = "username", required = false) String username) {
+        // Check if user is logged in
+        if (username == null || username.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Please log in first");
+        }
+        
         try {
             // Call account service to deposit money
             Map<String, Double> request = new HashMap<>();
@@ -84,7 +251,12 @@ public class AccountController {
     @ResponseBody
     public ResponseEntity<String> withdraw(@RequestParam String accountNumber, 
                                          @RequestParam Double amount,
-                                         @SessionAttribute("username") String username) {
+                                         @SessionAttribute(value = "username", required = false) String username) {
+        // Check if user is logged in
+        if (username == null || username.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Please log in first");
+        }
+        
         try {
             // Call account service to withdraw money
             Map<String, Double> request = new HashMap<>();

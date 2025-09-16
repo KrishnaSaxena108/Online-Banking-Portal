@@ -38,23 +38,64 @@
             </p>
         </div>
 
+        <!-- Error Message -->
+        <div th:if="${error}" class="card" style="background: #ffebee; border: 1px solid #f44336; color: #c62828;">
+            <h3 style="margin-bottom: 0.5rem; color: #c62828;">⚠️ Error</h3>
+            <p th:text="${error}" style="margin: 0;">Error message</p>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card">
+            <h3 style="margin-bottom: 1rem;">🔍 Filter Transactions</h3>
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="accountFilter" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">
+                        Filter by Account:
+                    </label>
+                    <select id="accountFilter" onchange="filterTransactions()" 
+                            style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; background: white;">
+                        <option value="">All My Accounts</option>
+                        <!-- This will be populated by JavaScript if needed, or we can use server-side -->
+                    </select>
+                </div>
+                
+                <div style="align-self: flex-end;">
+                    <button onclick="refreshTransactions()" class="btn btn-primary" 
+                            style="padding: 0.75rem 1.5rem; white-space: nowrap;">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <div th:if="${selectedAccountNumber}" style="margin-top: 1rem; padding: 0.75rem; background: #e3f2fd; border-radius: 8px; color: #1976d2;">
+                <strong>📌 Filtered by Account:</strong> <span th:text="${selectedAccountNumber}"></span>
+                <a href="/transactions" style="margin-left: 1rem; color: #1976d2; text-decoration: underline;">
+                    View All Transactions
+                </a>
+            </div>
+        </div>
+
         <!-- Transaction Statistics -->
         <div class="card" th:if="${!#lists.isEmpty(transactions)}">
-            <h3 style="margin-bottom: 1.5rem;">📈 Quick Stats</h3>
+            <h3 style="margin-bottom: 1.5rem;">📈 Transaction Summary</h3>
             <div class="dashboard-grid">
                 <div class="stat-card">
                     <div class="stat-value" th:text="${#lists.size(transactions)}">0</div>
-                    <div class="stat-label">Total Transactions</div>
+                    <div class="stat-label" th:text="${selectedAccountNumber != null ? 'Account Transactions' : 'Total Transactions'}">Transactions</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-value">💳</div>
-                    <div class="stat-label">Recent Activity</div>
+                    <div class="stat-value" style="color: #27ae60;">
+                        <span th:text="${#lists.size(transactions.?[type == 'DEPOSIT' or type == 'CREDIT'])}">0</span>
+                    </div>
+                    <div class="stat-label">💰 Credits/Deposits</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-value">🔄</div>
-                    <div class="stat-label">All Time</div>
+                    <div class="stat-value" style="color: #e74c3c;">
+                        <span th:text="${#lists.size(transactions.?[type == 'WITHDRAWAL' or type == 'DEBIT'])}">0</span>
+                    </div>
+                    <div class="stat-label">💸 Debits/Withdrawals</div>
                 </div>
             </div>
         </div>
@@ -95,7 +136,7 @@
                                 </span>
                             </td>
                             <td>
-                                <span style="color: #666;" th:text="${#temporals.format(transaction.timestamp, 'MMM dd, yyyy HH:mm')}"></span>
+                                <span style="color: #666;" th:text="${transaction.timestamp}"></span>
                             </td>
                         </tr>
                     </tbody>
@@ -117,6 +158,9 @@
         <div class="nav-menu">
             <a href="/accounts" class="nav-item">
                 🏦 Back to Accounts
+            </a>
+            <a href="/transactions" class="nav-item" th:if="${selectedAccountNumber}">
+                📊 View All My Transactions
             </a>
             <a href="/dashboard" class="nav-item">
                 🏠 Dashboard
@@ -174,5 +218,88 @@
             font-size: 0.9rem;
         }
     </style>
+
+    <script>
+        // Get current URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentAccountNumber = urlParams.get('accountNumber');
+
+        // Set the filter dropdown to the current account if one is selected
+        document.addEventListener('DOMContentLoaded', function() {
+            if (currentAccountNumber) {
+                const accountFilter = document.getElementById('accountFilter');
+                
+                // Add the current account as an option if it doesn't exist
+                let optionExists = false;
+                for (let option of accountFilter.options) {
+                    if (option.value === currentAccountNumber) {
+                        option.selected = true;
+                        optionExists = true;
+                        break;
+                    }
+                }
+                
+                if (!optionExists) {
+                    const option = document.createElement('option');
+                    option.value = currentAccountNumber;
+                    option.text = currentAccountNumber;
+                    option.selected = true;
+                    accountFilter.appendChild(option);
+                }
+            }
+            
+            // Populate account filter with unique account numbers from transactions
+            populateAccountFilter();
+        });
+
+        function populateAccountFilter() {
+            const accountFilter = document.getElementById('accountFilter');
+            const transactions = document.querySelectorAll('tbody tr');
+            const accountNumbers = new Set();
+            
+            transactions.forEach(row => {
+                const accountCell = row.children[1]; // Account number is in the second column
+                if (accountCell) {
+                    const accountNumber = accountCell.textContent.trim();
+                    if (accountNumber) {
+                        accountNumbers.add(accountNumber);
+                    }
+                }
+            });
+            
+            // Clear existing options except "All My Accounts"
+            while (accountFilter.children.length > 1) {
+                accountFilter.removeChild(accountFilter.lastChild);
+            }
+            
+            // Add account options
+            accountNumbers.forEach(accountNumber => {
+                const option = document.createElement('option');
+                option.value = accountNumber;
+                option.text = accountNumber;
+                if (accountNumber === currentAccountNumber) {
+                    option.selected = true;
+                }
+                accountFilter.appendChild(option);
+            });
+        }
+
+        function filterTransactions() {
+            const accountFilter = document.getElementById('accountFilter');
+            const selectedAccount = accountFilter.value;
+            
+            if (selectedAccount === '') {
+                // Show all transactions
+                window.location.href = '/transactions';
+            } else {
+                // Filter by selected account
+                window.location.href = `/transactions?accountNumber=${selectedAccount}`;
+            }
+        }
+
+        function refreshTransactions() {
+            window.location.reload();
+        }
+    </script>
 </body>
 </html>
