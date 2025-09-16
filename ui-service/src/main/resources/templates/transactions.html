@@ -1,32 +1,159 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-	<title>Your Transactions</title>
-	<link rel="stylesheet" th:href="@{/css/style.css}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureBank - Transaction History</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏦</text></svg>" />
 </head>
 <body>
-	<h2>Your Transactions</h2>
-	<p style="text-align:center;">Showing transactions for your account only.</p>
-	<table>
-		<thead>
-			<tr>
-				<th>ID</th>
-				<th>Account Number</th>
-				<th>Type</th>
-				<th>Amount</th>
-				<th>Date</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr th:each="transaction : ${transactions}">
-				<td th:text="${transaction.id}"></td>
-				<td th:text="${transaction.account.accountNumber}"></td>
-				<td th:text="${transaction.type}"></td>
-				<td th:text="${transaction.amount}"></td>
-				<td th:text="${transaction.timestamp}"></td>
-			</tr>
-		</tbody>
-	</table>
-	<a href="/accounts">Back to Accounts</a>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">🏦 SecureBank</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/accounts">Accounts</a></li>
+                    <li><a href="/transactions" style="color: #667eea;">Transactions</a></li>
+                    <li>
+                        <form th:action="@{/logout}" method="get" style="display: inline;">
+                            <button type="submit" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                Sign Out
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="card">
+            <h1 style="margin-bottom: 0.5rem;">📊 Transaction History</h1>
+            <p style="text-align: center; color: #666; font-size: 1.1rem;">
+                Complete record of your account activities
+            </p>
+        </div>
+
+        <!-- Transaction Statistics -->
+        <div class="card" th:if="${!#lists.isEmpty(transactions)}">
+            <h3 style="margin-bottom: 1.5rem;">📈 Quick Stats</h3>
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(transactions)}">0</div>
+                    <div class="stat-label">Total Transactions</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-value">💳</div>
+                    <div class="stat-label">Recent Activity</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-value">🔄</div>
+                    <div class="stat-label">All Time</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>🆔 Transaction ID</th>
+                            <th>🏦 Account</th>
+                            <th>📝 Type</th>
+                            <th>💰 Amount</th>
+                            <th>📅 Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="transaction : ${transactions}">
+                            <td>
+                                <span style="font-family: monospace; color: #667eea; font-weight: 600;" 
+                                      th:text="${transaction.id}"></span>
+                            </td>
+                            <td>
+                                <span style="font-weight: 500;" th:text="${transaction.account.accountNumber}"></span>
+                            </td>
+                            <td>
+                                <span class="transaction-type" th:text="${transaction.type}" 
+                                      th:classappend="${transaction.type == 'CREDIT' ? 'credit' : 'debit'}">
+                                </span>
+                            </td>
+                            <td>
+                                <span th:class="${transaction.type == 'CREDIT' ? 'credit-amount' : 'debit-amount'}"
+                                      style="font-weight: 600; font-size: 1.1rem;">
+                                    <span th:if="${transaction.type == 'CREDIT'}">+</span>
+                                    <span th:if="${transaction.type == 'DEBIT'}">-</span>
+                                    $<span th:text="${#numbers.formatDecimal(transaction.amount, 0, 2)}"></span>
+                                </span>
+                            </td>
+                            <td>
+                                <span style="color: #666;" th:text="${#temporals.format(transaction.timestamp, 'MMM dd, yyyy HH:mm')}"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(transactions)}" style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📊</div>
+                <h3 style="color: #666; margin-bottom: 1rem;">No Transactions Found</h3>
+                <p style="color: #999;">You haven't made any transactions yet.</p>
+                <a href="/accounts" class="btn btn-primary" style="margin-top: 1rem;">
+                    View Accounts
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="nav-menu">
+            <a href="/accounts" class="nav-item">
+                🏦 Back to Accounts
+            </a>
+            <a href="/dashboard" class="nav-item">
+                🏠 Dashboard
+            </a>
+            <button class="nav-item" style="border: none; background: none;" onclick="window.print()">
+                🖨️ Print Statement
+            </button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2024 SecureBank. Your trusted financial partner.</p>
+    </div>
+
+    <style>
+        .credit-amount {
+            color: #27ae60 !important;
+        }
+        .debit-amount {
+            color: #e74c3c !important;
+        }
+        .transaction-type.credit {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .transaction-type.debit {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+    </style>
 </body>
 </html>

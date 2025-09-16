@@ -1,31 +1,124 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-	<title>Your Accounts</title>
-	<link rel="stylesheet" th:href="@{/css/style.css}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureBank - My Accounts</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏦</text></svg>" />
 </head>
 <body>
-	<h2>Your Accounts</h2>
-	<table>
-		<thead>
-			<tr>
-				<th>Account Number</th>
-				<th>Account Holder</th>
-				<th>Balance</th>
-				<th>View Transactions</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr th:each="account : ${accounts}">
-				<td th:text="${account.accountNumber}"></td>
-				<td th:text="${account.accountHolderName}"></td>
-				<td th:text="${account.balance}"></td>
-				<td>
-					<a th:href="@{'/transactions?accountNumber=' + ${account.accountNumber}}">View</a>
-				</td>
-			</tr>
-		</tbody>
-	</table>
-	<a href="/dashboard">Back to Dashboard</a>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">🏦 SecureBank</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/accounts" style="color: #667eea;">Accounts</a></li>
+                    <li><a href="/transactions">Transactions</a></li>
+                    <li>
+                        <form th:action="@{/logout}" method="get" style="display: inline;">
+                            <button type="submit" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                Sign Out
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="card">
+            <h1 style="margin-bottom: 0.5rem;">💼 My Accounts</h1>
+            <p style="text-align: center; color: #666; font-size: 1.1rem;">
+                Overview of all your banking accounts
+            </p>
+        </div>
+
+        <!-- Accounts Table -->
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>🏦 Account Number</th>
+                            <th>👤 Account Holder</th>
+                            <th>💰 Balance</th>
+                            <th>📊 Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="account : ${accounts}">
+                            <td>
+                                <span style="font-weight: 600; color: #667eea;" th:text="${account.accountNumber}"></span>
+                            </td>
+                            <td th:text="${account.accountHolderName}"></td>
+                            <td>
+                                <span style="font-weight: 600; color: #27ae60; font-size: 1.1rem;">
+                                    $<span th:text="${#numbers.formatDecimal(account.balance, 0, 2)}"></span>
+                                </span>
+                            </td>
+                            <td>
+                                <a th:href="@{'/transactions?accountNumber=' + ${account.accountNumber}}" 
+                                   class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                    View Transactions
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(accounts)}" style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🏦</div>
+                <h3 style="color: #666; margin-bottom: 1rem;">No Accounts Found</h3>
+                <p style="color: #999;">It looks like you don't have any accounts yet.</p>
+                <a href="/dashboard" class="btn btn-primary" style="margin-top: 1rem;">
+                    Go to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Account Summary -->
+        <div class="card" th:if="${!#lists.isEmpty(accounts)}">
+            <h3 style="margin-bottom: 1.5rem;">📊 Account Summary</h3>
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(accounts)}">0</div>
+                    <div class="stat-label">Total Accounts</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-value">
+                        $<span th:text="${#numbers.formatDecimal(#aggregates.sum(accounts.![balance]), 0, 2)}">0.00</span>
+                    </div>
+                    <div class="stat-label">Total Balance</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-value">✅</div>
+                    <div class="stat-label">All Active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="nav-menu">
+            <a href="/dashboard" class="nav-item">
+                🏠 Back to Dashboard
+            </a>
+            <a href="/transactions" class="nav-item">
+                📊 View All Transactions
+            </a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2024 SecureBank. Your trusted financial partner.</p>
+    </div>
 </body>
 </html>
