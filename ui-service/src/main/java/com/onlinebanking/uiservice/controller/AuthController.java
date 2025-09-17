@@ -1,5 +1,7 @@
 package com.onlinebanking.uiservice.controller;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -25,6 +27,25 @@ public class AuthController {
     @GetMapping({"/", "/login"})
     public String loginPage() {
         return "login";
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model, HttpSession session) {
+        if (principal != null) {
+            // OAuth2 user
+            model.addAttribute("name", principal.getAttribute("name"));
+            model.addAttribute("email", principal.getAttribute("email"));
+            model.addAttribute("picture", principal.getAttribute("picture"));
+            model.addAttribute("loginType", "oauth2");
+        } else {
+            // Traditional login user
+            String username = (String) session.getAttribute("username");
+            if (username != null) {
+                model.addAttribute("name", username);
+                model.addAttribute("loginType", "traditional");
+            }
+        }
+        return "dashboard";
     }
 
     @PostMapping("/login")

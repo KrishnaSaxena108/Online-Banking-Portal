@@ -401,3 +401,69 @@ tr:last-child td {
 .float {
     animation: float 3s ease-in-out infinite;
 }
+
+/* Google Sign-In Button */
+.btn-google {
+    background: #db4437;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(219, 68, 55, 0.3);
+    text-decoration: none;
+}
+
+.btn-google:hover {
+    background: #c23321;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(219, 68, 55, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-google i {
+    font-size: 1.2rem;
+}
+
+/* Enhanced form styles */
+.form-group {
+    position: relative;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-group label i {
+    color: #667eea;
+}
+
+/* Alert styles */
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-error {
+    background: #fee;
+    color: #c53030;
+    border: 1px solid #feb2b2;
+}
+
+.alert-success {
+    background: #f0fff4;
+    color: #22543d;
+    border: 1px solid #9ae6b4;
+}
