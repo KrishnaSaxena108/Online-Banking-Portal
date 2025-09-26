@@ -6,9 +6,5 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class DashboardController {
     
-    @GetMapping("/logout")
-    public String logout(javax.servlet.http.HttpSession session) {
-        session.invalidate();
-        return "redirect:/login";
-    }
+    // Logout functionality moved to AuthController to avoid mapping conflicts
 }

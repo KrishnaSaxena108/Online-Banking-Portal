@@ -1,5 +1,7 @@
 package com.onlinebanking.uiservice.controller;
 
+import com.onlinebanking.uiservice.service.AccountServiceClientWithCircuitBreaker;
+import com.onlinebanking.uiservice.service.TransactionServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,6 +30,12 @@ import java.time.LocalDateTime;
 public class AccountController {
     @Autowired
     private RestTemplate restTemplate;
+    
+    @Autowired
+    private AccountServiceClientWithCircuitBreaker accountServiceClient;
+    
+    @Autowired
+    private TransactionServiceClient transactionServiceClient;
 
     @GetMapping("/accounts")
     public String accounts(Model model, @SessionAttribute(value = "username", required = false) String username) {
@@ -37,9 +45,8 @@ public class AccountController {
         }
         
         try {
-            // Fetch accounts for the logged-in user
-            List<Map<String, Object>> accounts = restTemplate.getForObject(
-                "http://localhost:8081/accounts/user/" + username, List.class);
+            // Use circuit breaker service to fetch accounts
+            List<Map<String, Object>> accounts = accountServiceClient.getAccountsByUsername(username);
             
             // Handle null response
             if (accounts == null) {
@@ -47,20 +54,21 @@ public class AccountController {
             }
             
             model.addAttribute("accounts", accounts);
-        } catch (org.springframework.web.client.ResourceAccessException e) {
-            // Service unavailable
-            System.err.println("Account service unavailable: " + e.getMessage());
+        } catch (io.github.resilience4j.circuitbreaker.CallNotPermittedException e) {
+            // Circuit breaker is open
+            System.err.println("Account service circuit breaker is open: " + e.getMessage());
             model.addAttribute("accounts", new ArrayList<>());
-            model.addAttribute("error", "Account service is currently unavailable. Please ensure the account service is running on port 8081.");
-        } catch (org.springframework.web.client.HttpClientErrorException e) {
-            // HTTP error (4xx, 5xx)
-            System.err.println("HTTP error fetching accounts: " + e.getMessage());
-            model.addAttribute("accounts", new ArrayList<>());
-            model.addAttribute("error", "Error fetching accounts: " + e.getStatusCode() + " - " + e.getStatusText());
+            model.addAttribute("error", "Account service is currently unavailable due to circuit breaker. Please try again later.");
         } catch (Exception e) {
-            System.err.println("Error fetching accounts: " + e.getMessage());
+            // Service unavailable or any other error
+            System.err.println("Account service error: " + e.getMessage());
             model.addAttribute("accounts", new ArrayList<>());
-            model.addAttribute("error", "Unexpected error occurred: " + e.getMessage());
+            if (e instanceof org.springframework.web.client.HttpClientErrorException) {
+                org.springframework.web.client.HttpClientErrorException httpError = (org.springframework.web.client.HttpClientErrorException) e;
+                model.addAttribute("error", "Error fetching accounts: " + httpError.getStatusCode() + " - " + httpError.getStatusText());
+            } else {
+                model.addAttribute("error", "Account service is currently unavailable. Error: " + e.getMessage());
+            }
         }
         
         return "accounts";
@@ -154,17 +162,13 @@ public class AccountController {
         
         try {
             if (accountNumber != null && !accountNumber.isEmpty()) {
-                // Fetch transactions for a specific account
-                serviceUrl = "http://localhost:8082/transactions/account/" + accountNumber;
+                // Fetch transactions for a specific account using circuit breaker
                 System.out.println("Fetching transactions for account: " + accountNumber);
-                System.out.println("Service URL: " + serviceUrl);
-                transactions = restTemplate.getForObject(serviceUrl, List.class);
+                transactions = transactionServiceClient.getTransactionsByAccountNumber(accountNumber);
             } else {
-                // Fetch all transactions for the logged-in user
-                serviceUrl = "http://localhost:8082/transactions/user/" + username;
+                // Fetch all transactions for the logged-in user using circuit breaker
                 System.out.println("Fetching all transactions for user: " + username);
-                System.out.println("Service URL: " + serviceUrl);
-                transactions = restTemplate.getForObject(serviceUrl, List.class);
+                transactions = transactionServiceClient.getTransactionsByUsername(username);
             }
             
             System.out.println("Transactions received: " + (transactions != null ? transactions.size() : "null"));
@@ -219,16 +223,11 @@ public class AccountController {
         }
         
         try {
-            // Call account service to deposit money
-            Map<String, Double> request = new HashMap<>();
-            request.put("amount", amount);
+            // Call account service to deposit money using circuit breaker
+            Map<String, Object> accountResponse = accountServiceClient.deposit(accountNumber, amount);
             
-            ResponseEntity<Map> accountResponse = restTemplate.postForEntity(
-                "http://localhost:8081/accounts/" + accountNumber + "/deposit", 
-                request, Map.class);
-            
-            if (accountResponse.getStatusCode() == HttpStatus.OK) {
-                // Create transaction record
+            if (accountResponse != null && !accountResponse.containsKey("error")) {
+                // Create transaction record using circuit breaker
                 Map<String, Object> transaction = new HashMap<>();
                 transaction.put("accountNumber", accountNumber);
                 transaction.put("amount", amount);
@@ -236,9 +235,12 @@ public class AccountController {
                 transaction.put("timestamp", LocalDateTime.now());
                 transaction.put("username", username);
                 
-                restTemplate.postForEntity("http://localhost:8082/transactions", transaction, Map.class);
-                
-                return ResponseEntity.ok("Deposit successful");
+                try {
+                    Map<String, Object> transactionResponse = transactionServiceClient.createTransaction(transaction);
+                    return ResponseEntity.ok("Deposit successful");
+                } catch (io.github.resilience4j.circuitbreaker.CallNotPermittedException ex) {
+                    return ResponseEntity.ok("Deposit successful, but transaction logging is temporarily unavailable");
+                }
             } else {
                 return ResponseEntity.badRequest().body("Deposit failed");
             }
@@ -258,16 +260,11 @@ public class AccountController {
         }
         
         try {
-            // Call account service to withdraw money
-            Map<String, Double> request = new HashMap<>();
-            request.put("amount", amount);
+            // Call account service to withdraw money using circuit breaker
+            Map<String, Object> accountResponse = accountServiceClient.withdraw(accountNumber, amount);
             
-            ResponseEntity<Map> accountResponse = restTemplate.postForEntity(
-                "http://localhost:8081/accounts/" + accountNumber + "/withdraw", 
-                request, Map.class);
-            
-            if (accountResponse.getStatusCode() == HttpStatus.OK) {
-                // Create transaction record
+            if (accountResponse != null && !accountResponse.containsKey("error")) {
+                // Create transaction record using circuit breaker
                 Map<String, Object> transaction = new HashMap<>();
                 transaction.put("accountNumber", accountNumber);
                 transaction.put("amount", amount);
@@ -275,9 +272,12 @@ public class AccountController {
                 transaction.put("timestamp", LocalDateTime.now());
                 transaction.put("username", username);
                 
-                restTemplate.postForEntity("http://localhost:8082/transactions", transaction, Map.class);
-                
-                return ResponseEntity.ok("Withdrawal successful");
+                try {
+                    Map<String, Object> transactionResponse = transactionServiceClient.createTransaction(transaction);
+                    return ResponseEntity.ok("Withdrawal successful");
+                } catch (io.github.resilience4j.circuitbreaker.CallNotPermittedException ex) {
+                    return ResponseEntity.ok("Withdrawal successful, but transaction logging is temporarily unavailable");
+                }
             } else {
                 return ResponseEntity.badRequest().body("Insufficient funds or invalid account");
             }
