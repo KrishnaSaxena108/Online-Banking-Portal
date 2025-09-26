@@ -53,9 +53,9 @@ graph TB
     GW --> AS[Account Service :8083]
     GW --> TS[Transaction Service :8084]
     
-    US --> DB1[(User DB)]
-    AS --> DB2[(Account DB)]
-    TS --> DB3[(Transaction DB)]
+    US --> DB1[(User Table)]
+    AS --> DB2[(Account Table)]
+    TS --> DB3[(Transaction Table)]
     
     ES[Eureka Server :8761] --> US
     ES --> AS
