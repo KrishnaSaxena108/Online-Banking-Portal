@@ -58,6 +58,32 @@ public class TransactionServiceClient {
         return transactionServiceCircuitBreaker.executeSupplier(supplier);
     }
     
+    public List<Map<String, Object>> createTransferTransactions(String fromAccountNumber, String toAccountNumber, 
+                                                               Double amount, String fromUsername, String toUsername, String description) {
+        Supplier<List<Map<String, Object>>> supplier = () -> {
+            String url = TRANSACTION_SERVICE_URL + "/transactions/transfer";
+            Map<String, Object> request = new HashMap<>();
+            request.put("fromAccountNumber", fromAccountNumber);
+            request.put("toAccountNumber", toAccountNumber);
+            request.put("amount", amount);
+            request.put("fromUsername", fromUsername);
+            request.put("toUsername", toUsername);
+            request.put("description", description);
+            return restTemplate.postForObject(url, request, List.class);
+        };
+        
+        return transactionServiceCircuitBreaker.executeSupplier(supplier);
+    }
+    
+    public List<Map<String, Object>> getAllTransactionsForAccount(String accountNumber) {
+        Supplier<List<Map<String, Object>>> supplier = () -> {
+            String url = TRANSACTION_SERVICE_URL + "/transactions/account/" + accountNumber + "/all";
+            return restTemplate.getForObject(url, List.class);
+        };
+        
+        return transactionServiceCircuitBreaker.executeSupplier(supplier);
+    }
+    
     // Fallback methods
     public List<Map<String, Object>> getTransactionsByUsernameFallback(String username, Exception ex) {
         System.err.println("Transaction service circuit breaker activated for user: " + username + ". Error: " + ex.getMessage());
@@ -102,6 +128,33 @@ public class TransactionServiceClient {
         Map<String, Object> fallbackTransaction = new HashMap<>();
         fallbackTransaction.put("id", -1L);
         fallbackTransaction.put("accountNumber", "SERVICE_UNAVAILABLE");
+        fallbackTransaction.put("amount", 0.0);
+        fallbackTransaction.put("type", "SERVICE_ERROR");
+        fallbackTransaction.put("timestamp", new java.util.Date());
+        fallbackTransaction.put("description", "Transaction service is currently unavailable");
+        fallbackTransactions.add(fallbackTransaction);
+        return fallbackTransactions;
+    }
+    
+    public List<Map<String, Object>> createTransferTransactionsFallback(String fromAccountNumber, String toAccountNumber, 
+                                                                       Double amount, String fromUsername, String toUsername, String description, Exception ex) {
+        System.err.println("Transaction service circuit breaker activated for transfer. Error: " + ex.getMessage());
+        List<Map<String, Object>> fallbackResponse = new ArrayList<>();
+        Map<String, Object> fallbackTransaction = new HashMap<>();
+        fallbackTransaction.put("error", "Transaction logging service is currently unavailable.");
+        fallbackTransaction.put("fromAccountNumber", fromAccountNumber);
+        fallbackTransaction.put("toAccountNumber", toAccountNumber);
+        fallbackTransaction.put("amount", amount);
+        fallbackResponse.add(fallbackTransaction);
+        return fallbackResponse;
+    }
+    
+    public List<Map<String, Object>> getAllTransactionsForAccountFallback(String accountNumber, Exception ex) {
+        System.err.println("Transaction service circuit breaker activated for getAllTransactionsForAccount. Account: " + accountNumber + ". Error: " + ex.getMessage());
+        List<Map<String, Object>> fallbackTransactions = new ArrayList<>();
+        Map<String, Object> fallbackTransaction = new HashMap<>();
+        fallbackTransaction.put("id", -1L);
+        fallbackTransaction.put("accountNumber", accountNumber);
         fallbackTransaction.put("amount", 0.0);
         fallbackTransaction.put("type", "SERVICE_ERROR");
         fallbackTransaction.put("timestamp", new java.util.Date());

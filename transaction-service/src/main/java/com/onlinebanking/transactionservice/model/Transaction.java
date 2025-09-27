@@ -13,6 +13,12 @@ public class Transaction {
     private String type;
     private LocalDateTime timestamp;
     private String username;
+    
+    // Transfer-specific fields
+    private String toAccountNumber;
+    private String fromAccountNumber;
+    private String transferId;
+    private String description;
 
     // Getters and setters
     public Long getId() { return id; }
@@ -27,4 +33,14 @@ public class Transaction {
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+    
+    // Transfer-specific getters and setters
+    public String getToAccountNumber() { return toAccountNumber; }
+    public void setToAccountNumber(String toAccountNumber) { this.toAccountNumber = toAccountNumber; }
+    public String getFromAccountNumber() { return fromAccountNumber; }
+    public void setFromAccountNumber(String fromAccountNumber) { this.fromAccountNumber = fromAccountNumber; }
+    public String getTransferId() { return transferId; }
+    public void setTransferId(String transferId) { this.transferId = transferId; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }

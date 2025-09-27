@@ -70,4 +70,42 @@ public class AccountController {
             return ResponseEntity.badRequest().body("Insufficient funds or account not found");
         }
     }
+    
+    @PostMapping("/transfer")
+    public ResponseEntity<Map<String, Object>> transfer(@RequestBody Map<String, Object> request) {
+        String fromAccountNumber = (String) request.get("fromAccountNumber");
+        String toAccountNumber = (String) request.get("toAccountNumber");
+        Double amount = (Double) request.get("amount");
+        
+        Map<String, Object> response = new java.util.HashMap<>();
+        
+        if (fromAccountNumber == null || toAccountNumber == null || amount == null || amount <= 0) {
+            response.put("error", "Invalid transfer parameters");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        if (fromAccountNumber.equals(toAccountNumber)) {
+            response.put("error", "Cannot transfer to the same account");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        boolean success = accountService.transfer(fromAccountNumber, toAccountNumber, amount);
+        if (success) {
+            response.put("success", true);
+            response.put("message", "Transfer successful");
+            response.put("fromAccount", fromAccountNumber);
+            response.put("toAccount", toAccountNumber);
+            response.put("amount", amount);
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("error", "Transfer failed: Account not found or insufficient funds");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @GetMapping("/exists/{accountNumber}")
+    public ResponseEntity<Boolean> checkAccountExists(@PathVariable String accountNumber) {
+        boolean exists = accountService.accountExists(accountNumber);
+        return ResponseEntity.ok(exists);
+    }
 }

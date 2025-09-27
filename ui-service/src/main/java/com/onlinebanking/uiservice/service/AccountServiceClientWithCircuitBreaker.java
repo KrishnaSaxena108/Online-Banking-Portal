@@ -62,6 +62,28 @@ public class AccountServiceClientWithCircuitBreaker {
         return accountServiceCircuitBreaker.executeSupplier(supplier);
     }
     
+    public Map<String, Object> transfer(String fromAccountNumber, String toAccountNumber, Double amount) {
+        Supplier<Map<String, Object>> supplier = () -> {
+            String url = ACCOUNT_SERVICE_URL + "/accounts/transfer";
+            Map<String, Object> request = new HashMap<>();
+            request.put("fromAccountNumber", fromAccountNumber);
+            request.put("toAccountNumber", toAccountNumber);
+            request.put("amount", amount);
+            return restTemplate.postForObject(url, request, Map.class);
+        };
+        
+        return accountServiceCircuitBreaker.executeSupplier(supplier);
+    }
+    
+    public Boolean checkAccountExists(String accountNumber) {
+        Supplier<Boolean> supplier = () -> {
+            String url = ACCOUNT_SERVICE_URL + "/accounts/exists/" + accountNumber;
+            return restTemplate.getForObject(url, Boolean.class);
+        };
+        
+        return accountServiceCircuitBreaker.executeSupplier(supplier);
+    }
+    
     // Fallback methods
     public List<Map<String, Object>> getAccountsFallback(String username, Exception ex) {
         System.err.println("Account service circuit breaker activated for user: " + username + ". Error: " + ex.getMessage());
@@ -102,5 +124,20 @@ public class AccountServiceClientWithCircuitBreaker {
         fallbackAccount.put("balance", 0.0);
         fallbackAccounts.add(fallbackAccount);
         return fallbackAccounts;
+    }
+    
+    public Map<String, Object> transferFallback(String fromAccountNumber, String toAccountNumber, Double amount, Exception ex) {
+        System.err.println("Account service circuit breaker activated for transfer. Error: " + ex.getMessage());
+        Map<String, Object> fallbackResponse = new HashMap<>();
+        fallbackResponse.put("error", "Transfer service is currently unavailable. Please try again later.");
+        fallbackResponse.put("fromAccount", fromAccountNumber);
+        fallbackResponse.put("toAccount", toAccountNumber);
+        fallbackResponse.put("amount", amount);
+        return fallbackResponse;
+    }
+    
+    public Boolean checkAccountExistsFallback(String accountNumber, Exception ex) {
+        System.err.println("Account service circuit breaker activated for account existence check. Account: " + accountNumber + ". Error: " + ex.getMessage());
+        return false; // Conservative fallback - assume account doesn't exist to prevent invalid transfers
     }
 }

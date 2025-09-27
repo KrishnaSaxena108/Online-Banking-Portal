@@ -51,4 +51,24 @@ public class AccountService {
         }
         return null;
     }
+    
+    public boolean transfer(String fromAccountNumber, String toAccountNumber, Double amount) {
+        Account fromAccount = accountRepository.findByAccountNumber(fromAccountNumber);
+        Account toAccount = accountRepository.findByAccountNumber(toAccountNumber);
+        
+        if (fromAccount != null && toAccount != null && fromAccount.getBalance() >= amount) {
+            fromAccount.setBalance(fromAccount.getBalance() - amount);
+            toAccount.setBalance(toAccount.getBalance() + amount);
+            
+            accountRepository.save(fromAccount);
+            accountRepository.save(toAccount);
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean accountExists(String accountNumber) {
+        Account account = accountRepository.findByAccountNumber(accountNumber);
+        return account != null;
+    }
 }

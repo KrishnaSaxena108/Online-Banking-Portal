@@ -285,4 +285,73 @@ public class AccountController {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
+
+    @PostMapping("/transfer")
+    @ResponseBody
+    public ResponseEntity<String> transfer(@RequestParam String accountNumber,
+                          @RequestParam String toAccountNumber,
+                          @RequestParam Double amount,
+                          @RequestParam(required = false) String description,
+                          HttpSession session) {
+        try {
+            // Get current user from session
+            String username = (String) session.getAttribute("username");
+            if (username == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Please log in first");
+            }
+            
+            // Validate amount
+            if (amount == null || amount <= 0) {
+                return ResponseEntity.badRequest().body("Transfer amount must be greater than zero");
+            }
+            
+            // Check if destination account exists
+            Boolean toAccountExists = accountServiceClient.checkAccountExists(toAccountNumber);
+            if (toAccountExists == null || !toAccountExists) {
+                return ResponseEntity.badRequest().body("Destination account " + toAccountNumber + " not found in database");
+            }
+            
+            // Get destination account details to get username
+            List<Map<String, Object>> allAccounts = accountServiceClient.getAllAccounts();
+            String toUsername = null;
+            for (Map<String, Object> account : allAccounts) {
+                if (toAccountNumber.equals(String.valueOf(account.get("accountNumber")))) {
+                    toUsername = (String) account.get("username");
+                    break;
+                }
+            }
+            
+            if (toUsername == null) {
+                return ResponseEntity.badRequest().body("Unable to identify destination account owner");
+            }
+            
+            // Perform the transfer
+            Map<String, Object> transferResult = accountServiceClient.transfer(accountNumber, toAccountNumber, amount);
+            
+            if (transferResult != null && transferResult.containsKey("error")) {
+                return ResponseEntity.badRequest().body(transferResult.get("error").toString());
+            }
+            
+            // Create transfer transactions in transaction service
+            try {
+                List<Map<String, Object>> transactionResult = transactionServiceClient.createTransferTransactions(
+                    accountNumber, toAccountNumber, amount, username, toUsername, description != null ? description : ""
+                );
+                
+                if (transactionResult != null && !transactionResult.isEmpty() && 
+                    transactionResult.get(0).containsKey("error")) {
+                    System.err.println("Failed to log transfer transactions: " + transactionResult.get(0).get("error"));
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to log transfer transactions: " + e.getMessage());
+                // Don't fail the transfer if logging fails
+            }
+            
+            return ResponseEntity.ok("Transfer of $" + amount + " to account " + toAccountNumber + " successful!");
+            
+        } catch (Exception e) {
+            System.err.println("Transfer error: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Transfer failed: " + e.getMessage());
+        }
+    }
 }
