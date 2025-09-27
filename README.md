@@ -53,9 +53,9 @@ graph TB
     GW --> AS[Account Service :8083]
     GW --> TS[Transaction Service :8084]
     
-    US --> DB1[(User Table)]
-    AS --> DB2[(Account Table)]
-    TS --> DB3[(Transaction Table)]
+    US --> TB1[(User Table)]
+    AS --> TB2[(Account Table)]
+    TS --> TB3[(Transaction Table)]
     
     ES[Eureka Server :8761] --> US
     ES --> AS
@@ -84,6 +84,7 @@ graph TB
   - **Gateway** - API gateway
 - **Spring Security** - Authentication and authorization
 - **Spring Data JPA** - Data persistence
+- **Circuit Breaker** - Fault tolerance and resilience
 - **Maven** - Build and dependency management
 
 ### Frontend
@@ -229,9 +230,16 @@ Default port configuration:
 
 - **JWT Authentication** - Stateless token-based authentication
 - **OAuth2 Integration** - Third-party authentication support
+- **Role-based Authorization** - Secure access control
 - **Session Management** - Secure session handling
 - **Input Validation** - Protection against malicious inputs
 - **HTTPS Support** - Secure communication (configurable)
+
+## 🛡️ Resilience Features
+
+- **Circuit Breaker Pattern** - Prevents cascade failures across microservices
+- **Fault Tolerance** - Graceful handling of service unavailability
+- **Service Recovery** - Automatic recovery mechanisms for failed services
 
 ## 🚧 Future Enhancements
 
