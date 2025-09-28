@@ -402,32 +402,6 @@ tr:last-child td {
     animation: float 3s ease-in-out infinite;
 }
 
-/* Google Sign-In Button */
-.btn-google {
-    background: #db4437;
-    color: white;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(219, 68, 55, 0.3);
-    text-decoration: none;
-}
-
-.btn-google:hover {
-    background: #c23321;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(219, 68, 55, 0.4);
-    color: white;
-    text-decoration: none;
-}
-
-.btn-google i {
-    font-size: 1.2rem;
-}
-
 /* Enhanced form styles */
 .form-group {
     position: relative;

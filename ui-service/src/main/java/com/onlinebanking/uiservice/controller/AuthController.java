@@ -1,7 +1,5 @@
 package com.onlinebanking.uiservice.controller;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -36,26 +34,20 @@ public class AuthController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model, HttpSession session) {
-        if (principal != null) {
-            // OAuth2 user
-            model.addAttribute("name", principal.getAttribute("name"));
-            model.addAttribute("email", principal.getAttribute("email"));
-            model.addAttribute("picture", principal.getAttribute("picture"));
-            model.addAttribute("loginType", "oauth2");
-        } else {
-            // Traditional login user
-            String username = (String) session.getAttribute("username");
-            if (username != null) {
-                model.addAttribute("name", username);
-                model.addAttribute("loginType", "traditional");
-            }
+    public String dashboard(Model model, HttpSession session) {
+        // Traditional login user
+        String username = (String) session.getAttribute("username");
+        if (username != null) {
+            model.addAttribute("name", username);
+            model.addAttribute("loginType", "traditional");
         }
         return "dashboard";
     }
 
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model, HttpSession session) {
+        System.out.println("Login attempt for username: " + username);
+        
         Map<String, String> req = new HashMap<>();
         req.put("username", username);
         req.put("password", password);
@@ -63,17 +55,22 @@ public class AuthController {
         // Use circuit breaker for login
         Map<String, Object> response = userServiceClientWithCircuitBreaker.loginWithFallback(req);
         
+        System.out.println("Login response: " + response);
+        
         if (response.containsKey("token")) {
             // Store username in session
             session.setAttribute("username", username);
+            System.out.println("Login successful for: " + username);
             return "redirect:/dashboard";
         } else {
             // Handle circuit breaker open state with special message
             if (response.containsKey("circuitBreakerOpen") && (Boolean) response.get("circuitBreakerOpen")) {
                 model.addAttribute("error", "🔴 " + response.get("error"));
                 model.addAttribute("circuitBreakerError", true);
+                System.out.println("Circuit breaker error for: " + username);
             } else {
                 model.addAttribute("error", response.getOrDefault("error", "Login failed"));
+                System.out.println("Login failed for: " + username + " - " + response.getOrDefault("error", "Login failed"));
             }
             return "login";
         }

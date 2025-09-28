@@ -14,13 +14,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authz -> authz
-                .antMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .loginPage("/login")
-                .defaultSuccessUrl("/dashboard", true)
-                .failureUrl("/login?error=true")
+                .antMatchers("/", "/login", "/register", "/dashboard", "/accounts", "/transactions", "/css/**", "/js/**", "/images/**", "/user-service/circuit-breaker/status", "/logout").permitAll()
+                .anyRequest().permitAll()
             )
             .logout(logout -> logout
                 .logoutSuccessUrl("/")
