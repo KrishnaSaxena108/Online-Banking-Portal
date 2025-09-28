@@ -33,6 +33,7 @@ This is a comprehensive online banking portal developed as a college project to 
 
 ### 💰 Transaction Services
 - **Money Transfers** - Transfer funds between accounts
+- **Transfer to Bank Account** - Transfer money to external bank accounts
 - **Transaction History** - Comprehensive transaction statements
 - **Real-time Balance Updates** - Instant balance reflection
 
