@@ -1,80 +1,140 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureBank - Login</title>
+    <title>Elite Banking - Secure Login</title>
     <link rel="stylesheet" th:href="@{/css/style.css}" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏦</text></svg>" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <div class="container">
-        <div class="card auth-card float">
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <div class="logo" style="font-size: 2.5rem; margin-bottom: 0.5rem;">🏦 SecureBank</div>
-                <p style="color: #666; font-size: 1.1rem;">Welcome back! Please sign in to your account</p>
-            </div>
-            
-            <!-- Error message -->
-            <div th:if="${param.error}" class="alert alert-error">
-                <i class="fas fa-exclamation-circle"></i>
-                Invalid credentials or authentication failed. Please try again.
-            </div>
-            
-            <!-- Logout message -->
-            <div th:if="${param.logout}" class="alert alert-success">
-                <i class="fas fa-check-circle"></i>
-                You have been logged out successfully.
-            </div>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1 class="auth-logo">Elite Banking</h1>
+            <p class="auth-subtitle">Secure access to your premier banking services</p>
+        </div>
 
-            <!-- Traditional Login Form -->
-            <form method="post" action="/login">
-                <div class="form-group">
-                    <label for="username">
-                        <i class="fas fa-user"></i> Username
-                    </label>
-                    <input type="text" id="username" name="username" required 
-                           placeholder="Enter your username" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">
-                        <i class="fas fa-lock"></i> Password
-                    </label>
-                    <input type="password" id="password" name="password" required 
-                           placeholder="Enter your password" />
-                </div>
-                
-                <button type="submit" class="btn btn-primary btn-full">
-                    <i class="fas fa-sign-in-alt"></i> Sign In
-                </button>
-            </form>
-
-            <!-- Divider -->
-            <div style="text-align: center; margin: 2rem 0; position: relative;">
-                <span style="background: white; padding: 0 1rem; color: #666; position: relative; z-index: 1;">OR</span>
-                <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e1e8ed; z-index: 0;"></div>
-            </div>
-
-            <!-- Google Sign-In Button -->
-            <a href="/oauth2/authorization/google" class="btn btn-google btn-full">
-                <i class="fab fa-google"></i> Sign in with Google
-            </a>
-            
-            <div th:if="${error}" class="alert alert-error">
-                <strong>Error:</strong> <span th:text="${error}"></span>
-            </div>
-            
-            <div class="auth-link">
-                Don't have an account? 
-                <a th:href="@{/register}">Create one now</a>
+        <!-- Alert Messages -->
+        <div th:if="${param.error}" class="alert alert-error" role="alert" aria-live="assertive">
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+            <div>
+                <strong>Authentication Failed</strong><br>
+                Invalid credentials provided. Please verify your username and password.
             </div>
         </div>
         
-        <div class="footer">
-            <p>&copy; 2024 SecureBank. Your trusted financial partner.</p>
+        <div th:if="${param.logout}" class="alert alert-success" role="alert" aria-live="polite">
+            <i class="fas fa-check-circle" aria-hidden="true"></i>
+            <div>
+                <strong>Session Terminated</strong><br>
+                You have been securely logged out of your banking session.
+            </div>
+        </div>
+
+        <!-- Premium Login Form -->
+        <form th:action="@{/login}" method="post" aria-labelledby="login-title">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" 
+                       id="username" 
+                       name="username" 
+                       class="form-input with-icon" 
+                       placeholder="Enter your username" 
+                       required 
+                       autocomplete="username"
+                       aria-describedby="username-help">
+                <i class="form-icon login-icon fas fa-user" aria-hidden="true"></i>
+                <div id="username-help" class="sr-only">Enter the username for your banking account</div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       class="form-input with-icon" 
+                       placeholder="Enter your password" 
+                       required 
+                       autocomplete="current-password"
+                       aria-describedby="password-help">
+                <i class="form-icon login-icon fas fa-lock" aria-hidden="true"></i>
+                <div id="password-help" class="sr-only">Enter your secure password</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full btn-lg" aria-describedby="login-desc">
+                <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                Access Account
+            </button>
+            <div id="login-desc" class="sr-only">Submit form to access your banking account</div>
+        </form>
+
+        <!-- Professional Links -->
+        <div class="auth-link">
+            <p>New to Elite Banking? 
+               <a th:href="@{/register}" aria-label="Create new premium banking account">Create Premium Account</a>
+            </p>
+        </div>
+
+        <div class="auth-link">
+            <p>
+                <a href="#" aria-label="Reset forgotten password">Forgot Password?</a> | 
+                <a href="#" aria-label="Contact customer support">Contact Support</a> | 
+                <a href="#" aria-label="View security center">Security Center</a>
+            </p>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="security-notice">
+            <div class="security-info">
+                <h4><i class="fas fa-shield-alt" aria-hidden="true"></i> Security Information</h4>
+                <p>Your connection is secured with 256-bit SSL encryption. Never share your login credentials with anyone.</p>
+            </div>
         </div>
     </div>
+
+    <script>
+        // Add professional loading animation to login button
+        document.querySelector('form').addEventListener('submit', function() {
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<span class="loading"></span> Authenticating...';
+            submitBtn.disabled = true;
+            submitBtn.setAttribute('aria-busy', 'true');
+            
+            // Reset if there's an error (page doesn't redirect)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                submitBtn.removeAttribute('aria-busy');
+            }, 5000);
+        });
+
+        // Add focus enhancement for accessibility
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Keyboard navigation enhancement
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                if (e.target.id === 'username') {
+                    document.getElementById('password').focus();
+                    e.preventDefault();
+                } else if (e.target.id === 'password') {
+                    document.querySelector('button[type="submit"]').click();
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
 </body>
 </html>

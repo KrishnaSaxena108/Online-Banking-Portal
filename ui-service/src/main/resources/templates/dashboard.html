@@ -3,116 +3,581 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureBank - Dashboard</title>
+    <title>Elite Banking - Dashboard</title>
     <link rel="stylesheet" th:href="@{/css/style.css}" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏦</text></svg>" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="nav-container">
-            <div class="logo">🏦 SecureBank</div>
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="/dashboard">Dashboard</a></li>
-                    <li><a href="/accounts">Accounts</a></li>
-                    <li><a href="/transactions">Transactions</a></li>
-                    <li>
-                        <form th:action="@{/logout}" method="get" style="display: inline;">
-                            <button type="submit" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                                Sign Out
-                            </button>
-                        </form>
-                    </li>
-                </ul>
+    <div class="dashboard-layout">
+        <!-- Elite Banking Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <span class="icon">🏛️</span>
+                    <span class="text">Elite Banking</span>
+                </div>
+                <button type="button" class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- User Profile Section -->
+            <div class="sidebar-user">
+                <div class="user-avatar" th:text="${#strings.substring(currentUser ?: 'U', 0, 1).toUpperCase()}">U</div>
+                <div class="user-info">
+                    <div class="user-name" th:text="${currentUser ?: 'User'}">User</div>
+                    <div class="user-role">Premier Client</div>
+                </div>
+            </div>
+
+            <!-- Elite Navigation -->
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Banking</div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link active" onclick="showTab('overview')">
+                            <i class="nav-icon fas fa-chart-line"></i>
+                            <span class="nav-text">Overview</span>
+                        </button>
+                    </div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link" onclick="showTab('accounts')">
+                            <i class="nav-icon fas fa-university"></i>
+                            <span class="nav-text">Account Info</span>
+                        </button>
+                    </div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link" onclick="showTab('transfer')">
+                            <i class="nav-icon fas fa-paper-plane"></i>
+                            <span class="nav-text">Send Money</span>
+                        </button>
+                    </div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link" onclick="showTab('transactions')">
+                            <i class="nav-icon fas fa-list-alt"></i>
+                            <span class="nav-text">Transactions</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Services</div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link" onclick="showTab('deposit')">
+                            <i class="nav-icon fas fa-plus-circle"></i>
+                            <span class="nav-text">Deposit</span>
+                        </button>
+                    </div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link" onclick="showTab('withdraw')">
+                            <i class="nav-icon fas fa-minus-circle"></i>
+                            <span class="nav-text">Withdraw</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <div class="nav-item">
+                        <a th:href="@{/logout}" class="nav-link">
+                            <i class="nav-icon fas fa-sign-out-alt"></i>
+                            <span class="nav-text">Sign Out</span>
+                        </a>
+                    </div>
+                </div>
             </nav>
-        </div>
-    </header>
+        </aside>
 
-    <div class="container">
-        <!-- Welcome Section -->
-        <div class="card">
-            <h1 style="margin-bottom: 0.5rem;">Welcome Back! 👋</h1>
-            <p style="text-align: center; color: #666; font-size: 1.2rem;">
-                Manage your finances with confidence and ease
-            </p>
-        </div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Professional Header -->
+            <header class="main-header">
+                <h1 class="page-title">Elite Banking Dashboard</h1>
+                <div class="header-actions">
+                    <a href="#" class="header-btn">
+                        <i class="fas fa-bell"></i>
+                        Notifications
+                    </a>
+                    <a href="/logout" class="header-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </a>
+                </div>
+            </header>
 
-        <!-- Quick Stats -->
-        <div class="dashboard-grid">
-            <div class="stat-card">
-                <div class="stat-value">💰</div>
-                <div class="stat-label">Total Balance</div>
-                <p style="color: #666; margin-top: 0.5rem;">View in Accounts</p>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-value">📊</div>
-                <div class="stat-label">Recent Activity</div>
-                <p style="color: #666; margin-top: 0.5rem;">View in Transactions</p>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-value">🔒</div>
-                <div class="stat-label">Secure Banking</div>
-                <p style="color: #666; margin-top: 0.5rem;">Protected 24/7</p>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card">
-            <h2 style="margin-bottom: 2rem;">Quick Actions</h2>
-            <div class="nav-menu">
-                <a href="/accounts" class="nav-item">
-                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🏦</div>
-                    <div>View Accounts</div>
-                    <small style="color: #666;">Check balances & details</small>
-                </a>
-                
-                <a href="/transactions" class="nav-item">
-                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💳</div>
-                    <div>View Transactions</div>
-                    <small style="color: #666;">Transaction history</small>
-                </a>
-                
-                <a href="/accounts" class="nav-item">
-                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💸</div>
-                    <div>Transfer Money</div>
-                    <small style="color: #666;">Send & receive funds</small>
-                </a>
-            </div>
-        </div>
-
-        <!-- Features Section -->
-        <div class="card">
-            <h3 style="text-align: center; margin-bottom: 2rem;">Why Choose SecureBank?</h3>
-            <div class="dashboard-grid">
-                <div style="text-align: center; padding: 1rem;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
-                    <h4 style="color: #667eea; margin-bottom: 0.5rem;">Bank-Grade Security</h4>
-                    <p style="color: #666;">Your data is protected with enterprise-level encryption</p>
+            <!-- Dynamic Content Area -->
+            <div class="content-area">
+                <!-- Alert Messages -->
+                <div th:if="${success}" class="alert alert-success" role="alert" style="margin-bottom: 2rem;">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i>
+                    <span th:text="${success}">Success message</span>
                 </div>
                 
-                <div style="text-align: center; padding: 1rem;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
-                    <h4 style="color: #667eea; margin-bottom: 0.5rem;">Lightning Fast</h4>
-                    <p style="color: #666;">Instant transactions and real-time updates</p>
+                <div th:if="${error}" class="alert alert-error" role="alert" style="margin-bottom: 2rem;">
+                    <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                    <span th:text="${error}">Error message</span>
                 </div>
-                
-                <div style="text-align: center; padding: 1rem;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">📱</div>
-                    <h4 style="color: #667eea; margin-bottom: 0.5rem;">Mobile Ready</h4>
-                    <p style="color: #666;">Access your accounts anywhere, anytime</p>
+
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="tab-content active">
+                    <h2 style="margin-bottom: 1rem; color: var(--gray-800);">Financial Overview</h2>
+                    <p style="margin-bottom: 2rem; color: var(--gray-600);">Comprehensive view of your banking portfolio</p>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card balance">
+                            <div class="stat-icon">💳</div>
+                            <div class="stat-value" th:text="'$' + ${balance ?: '0.00'}">$0.00</div>
+                            <div class="stat-label">Current Balance</div>
+                        </div>
+                        
+                        <div class="stat-card account-type">
+                            <div class="stat-icon">🏦</div>
+                            <div class="stat-value" th:text="${accountType ?: 'Checking'}">Checking</div>
+                            <div class="stat-label">Account Type</div>
+                        </div>
+                        
+                        <div class="stat-card account-number">
+                            <div class="stat-icon">�</div>
+                            <div class="stat-value" th:text="${accountNumber ?: 'N/A'}">N/A</div>
+                            <div class="stat-label">Account Number</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <div class="action-card" onclick="showTab('transfer')">
+                            <div class="action-icon">📤</div>
+                            <div class="action-title">Send Money</div>
+                            <div class="action-desc">Transfer funds instantly</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showTab('deposit')">
+                            <div class="action-icon">💰</div>
+                            <div class="action-title">Deposit</div>
+                            <div class="action-desc">Add funds to account</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showTab('withdraw')">
+                            <div class="action-icon">🏧</div>
+                            <div class="action-title">Withdraw</div>
+                            <div class="action-desc">Cash withdrawal</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showTab('transactions')">
+                            <div class="action-icon">📊</div>
+                            <div class="action-title">View Transactions</div>
+                            <div class="action-desc">Recent activity</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Info Tab -->
+                <div id="accounts-tab" class="tab-content">
+                    <h2 style="margin-bottom: 1rem; color: var(--gray-800);">Account Information</h2>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Primary Checking Account</h3>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                            <div>
+                                <h4 style="margin-bottom: 1rem; color: var(--gray-800);">Account Details</h4>
+                                <p><strong>Account Holder:</strong> <span th:text="${session.currentUser ?: 'User'}">User</span></p>
+                                <p><strong>Account Type:</strong> Student Savings Account</p>
+                                <p><strong>Branch:</strong> Chitkara University Branch</p>
+                                <p><strong>IFSC Code:</strong> CHTU0001234</p>
+                                <p><strong>Account Status:</strong> <span style="color: var(--success); font-weight: 600;">Active</span></p>
+                                <p><strong>Customer ID:</strong> <span style="font-family: monospace;">CU2024001</span></p>
+                            </div>
+                            
+                            <div>
+                                <h4 style="margin-bottom: 1rem; color: var(--gray-800);">Balance Information</h4>
+                                <p><strong>Available Balance:</strong> <span th:text="'₹' + ${balance ?: '0.00'}">₹0.00</span></p>
+                                <p><strong>Last Updated:</strong> Today, 2:45 PM</p>
+                                <p><strong>Interest Rate:</strong> 4.0% APY</p>
+                                <p><strong>Minimum Balance:</strong> ₹500.00</p>
+                                <p><strong>Daily Limit:</strong> ₹25,000.00</p>
+                                <p><strong>Account Since:</strong> August 2024</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Send Money Tab -->
+                <div id="transfer-tab" class="tab-content">
+                    <h2 style="margin-bottom: 1rem; color: var(--gray-800);">Send Money</h2>
+                    <div class="card">
+                        <form action="/dashboard/transfer" method="post">
+                            <div class="form-group">
+                                <label class="form-label">Recipient Account</label>
+                                <input type="text" class="form-input" name="toAccountNumber" placeholder="Enter recipient account number" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Amount (₹)</label>
+                                <input type="number" class="form-input" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Description (Optional)</label>
+                                <input type="text" class="form-input" name="description" placeholder="Payment description">
+                            </div>
+                            
+                            <div style="display: flex; gap: 1rem;">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Send Money
+                                </button>
+                                <button type="reset" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Transactions Tab -->
+                <div id="transactions-tab" class="tab-content">
+                    <h2 style="margin-bottom: 1rem; color: var(--gray-800);">Recent Transactions</h2>
+                    
+                    <!-- Simple Transaction Filters -->
+                    <div class="card" style="margin-bottom: 1.5rem; padding: 1rem;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+                            
+                            <!-- Left side filters -->
+                            <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+                                <!-- Transaction Type Filter -->
+                                <div>
+                                    <select id="typeFilter" class="form-input" style="min-width: 180px;">
+                                        <option value="">🔄 All Types</option>
+                                        <option value="DEPOSIT">💰 Deposits</option>
+                                        <option value="WITHDRAWAL">💸 Withdrawals</option>
+                                        <option value="TRANSFER_IN">📥 Money Received</option>
+                                        <option value="TRANSFER_OUT">📤 Money Sent</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Search Filter -->
+                                <div>
+                                    <input type="text" id="searchFilter" class="form-input" placeholder="🔍 Search descriptions..." style="min-width: 200px;">
+                                </div>
+                            </div>
+                            
+                            <!-- Right side info and actions -->
+                            <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+                                <div style="padding: 6px 12px; background: var(--primary-light); color: var(--primary); border-radius: 20px; font-size: 14px; font-weight: 500;">
+                                    <span id="transactionCount">0</span> transactions
+                                </div>
+                                
+                                <button type="button" class="btn btn-secondary" onclick="clearAllFilters()" style="padding: 8px 16px; border-radius: 20px;">
+                                    <i class="fas fa-times"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Transaction Type</th>
+                                    <th>Amount</th>
+                                    <th>From Account</th>
+                                    <th>To Account</th>
+                                    <th>Transaction ID</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Show real transactions if available -->
+                                <tr th:if="${transactions == null or transactions.size() == 0}">
+                                    <td colspan="7" style="text-align: center; color: var(--gray-500); padding: 2rem;">
+                                        No transactions found. Start by making a deposit, withdrawal, or transfer.
+                                    </td>
+                                </tr>
+                                <tr th:each="transaction : ${transactions}" class="transaction-row"
+                                    th:attr="data-type=${transaction.type}, data-amount=${transaction.amount}, data-date=${#strings.substring(transaction.timestamp, 0, 10)}, data-description=${transaction.description}">
+                                    <td style="min-width: 120px;">
+                                        <div style="font-weight: 600; color: var(--gray-800);" 
+                                             th:text="${#strings.substring(transaction.timestamp, 0, 10)}">Date</div>
+                                        <small style="color: var(--gray-500);" 
+                                               th:text="${#strings.substring(transaction.timestamp, 11, 16)}">Time</small>
+                                    </td>
+                                    <td>
+                                        <span th:switch="${transaction.type}" 
+                                              style="padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">
+                                            <span th:case="'DEPOSIT'" 
+                                                  style="background: var(--success-light); color: var(--success);">💰 Deposit</span>
+                                            <span th:case="'WITHDRAWAL'" 
+                                                  style="background: var(--warning-light); color: var(--warning);">💸 Withdrawal</span>
+                                            <span th:case="'TRANSFER_IN'" 
+                                                  style="background: var(--info-light); color: var(--info);">📥 Money Received</span>
+                                            <span th:case="'TRANSFER_OUT'" 
+                                                  style="background: var(--primary-light); color: var(--primary);">📤 Money Sent</span>
+                                            <span th:case="*" 
+                                                  style="background: var(--gray-100); color: var(--gray-600);" 
+                                                  th:text="${transaction.type}">Other</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:style="${transaction.amount >= 0} ? 'color: var(--success); font-weight: 600;' : 'color: var(--error); font-weight: 600;'"
+                                              th:text="${transaction.amount >= 0} ? '+₹' + ${#numbers.formatDecimal(transaction.amount, 0, 2)} : '-₹' + ${#numbers.formatDecimal(transaction.amount * -1, 0, 2)}">
+                                            Amount
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${transaction.fromAccountNumber != null}" 
+                                              th:text="${transaction.fromAccountNumber}"
+                                              style="font-family: monospace; background: var(--gray-50); padding: 2px 6px; border-radius: 4px;">-</span>
+                                        <span th:unless="${transaction.fromAccountNumber != null}" 
+                                              style="color: var(--gray-400);">-</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${transaction.toAccountNumber != null}" 
+                                              th:text="${transaction.toAccountNumber}"
+                                              style="font-family: monospace; background: var(--gray-50); padding: 2px 6px; border-radius: 4px;">-</span>
+                                        <span th:unless="${transaction.toAccountNumber != null}" 
+                                              style="color: var(--gray-400);">-</span>
+                                    </td>
+                                    <td>
+                                        <small th:if="${transaction.transferId != null}" 
+                                               th:text="${transaction.transferId}" 
+                                               style="font-family: monospace; color: var(--gray-500); font-size: 11px;">-</small>
+                                        <span th:unless="${transaction.transferId != null}" 
+                                              style="color: var(--gray-400);">-</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${transaction.description != null and !#strings.isEmpty(transaction.description)}" 
+                                              th:text="${transaction.description}">-</span>
+                                        <span th:unless="${transaction.description != null and !#strings.isEmpty(transaction.description)}" 
+                                              style="color: var(--gray-400); font-style: italic;">No description</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Deposit Tab -->
+                <div id="deposit-tab" class="tab-content">
+                    <h2 style="margin-bottom: 1rem; color: var(--gray-800);">Deposit Funds</h2>
+                    <div class="card">
+                        <form action="/dashboard/deposit" method="post">
+                            <div class="form-group">
+                                <label class="form-label">Deposit Amount (₹)</label>
+                                <input type="number" class="form-input" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Deposit Method</label>
+                                <select class="form-input" name="method">
+                                    <option value="check">Check Deposit</option>
+                                    <option value="cash">Cash Deposit</option>
+                                    <option value="transfer">Bank Transfer</option>
+                                </select>
+                            </div>
+                            
+                            <div style="display: flex; gap: 1rem;">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-plus-circle"></i>
+                                    Deposit Funds
+                                </button>
+                                <button type="reset" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Withdraw Tab -->
+                <div id="withdraw-tab" class="tab-content">
+                    <h2 style="margin-bottom: 1rem; color: var(--gray-800);">Withdraw Funds</h2>
+                    <div class="card">
+                        <form action="/dashboard/withdraw" method="post">
+                            <div class="form-group">
+                                <label class="form-label">Withdrawal Amount (₹)</label>
+                                <input type="number" class="form-input" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Withdrawal Method</label>
+                                <select class="form-input" name="method">
+                                    <option value="atm">ATM Withdrawal</option>
+                                    <option value="check">Cashier's Check</option>
+                                    <option value="transfer">Bank Transfer</option>
+                                </select>
+                            </div>
+                            
+                            <div style="display: flex; gap: 1rem;">
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-minus-circle"></i>
+                                    Withdraw Funds
+                                </button>
+                                <button type="reset" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 
-    <div class="footer">
-        <p>&copy; 2024 SecureBank. Your trusted financial partner since day one.</p>
-        <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">
-            🔒 All transactions are secured with 256-bit SSL encryption
-        </p>
-    </div>
+    <script>
+        // Sidebar Toggle Functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Tab Navigation
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show selected tab
+            const targetTab = document.getElementById(tabName + '-tab');
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+            
+            // Add active class to clicked nav link
+            if (event && event.target) {
+                const clickedLink = event.target.closest('.nav-link');
+                if (clickedLink) {
+                    clickedLink.classList.add('active');
+                }
+            }
+        }
+
+        // Auto-collapse sidebar on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.innerWidth <= 1024) {
+                document.getElementById('sidebar').classList.add('collapsed');
+            }
+
+            // Setup transaction filters
+            setupTransactionFilters();
+            updateTransactionCount();
+
+            // Add loading states to forms
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        const originalText = submitBtn.innerHTML;
+                        submitBtn.innerHTML = '<span class="loading"></span> Processing...';
+                        
+                        // Reset if there's an error (page doesn't redirect)
+                        setTimeout(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }, 5000);
+                    }
+                });
+            });
+        });
+
+        // Transaction filtering functionality
+        function setupTransactionFilters() {
+            const typeFilter = document.getElementById('typeFilter');
+            const searchFilter = document.getElementById('searchFilter');
+            
+            // Add event listeners to filter inputs
+            if (typeFilter) {
+                typeFilter.addEventListener('change', applyFilters);
+            }
+            if (searchFilter) {
+                searchFilter.addEventListener('input', applyFilters);
+            }
+        }
+        
+        function applyFilters() {
+            const typeFilter = document.getElementById('typeFilter')?.value || '';
+            const searchFilter = document.getElementById('searchFilter')?.value.toLowerCase() || '';
+            
+            const transactionRows = document.querySelectorAll('.transaction-row');
+            let visibleCount = 0;
+            
+            transactionRows.forEach(row => {
+                let show = true;
+                
+                // Filter by transaction type
+                if (typeFilter && row.getAttribute('data-type') !== typeFilter) {
+                    show = false;
+                }
+                
+                // Filter by description search
+                if (searchFilter) {
+                    const description = (row.getAttribute('data-description') || '').toLowerCase();
+                    if (!description.includes(searchFilter)) {
+                        show = false;
+                    }
+                }
+                
+                // Show/hide row
+                if (show) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            updateTransactionCount(visibleCount);
+        }
+        
+        function clearAllFilters() {
+            const typeFilter = document.getElementById('typeFilter');
+            const searchFilter = document.getElementById('searchFilter');
+            
+            if (typeFilter) typeFilter.value = '';
+            if (searchFilter) searchFilter.value = '';
+            
+            // Show all rows
+            const transactionRows = document.querySelectorAll('.transaction-row');
+            transactionRows.forEach(row => {
+                row.style.display = '';
+            });
+            
+            updateTransactionCount();
+        }
+        
+        function updateTransactionCount(count) {
+            if (typeof count === 'undefined') {
+                const visibleRows = document.querySelectorAll('.transaction-row:not([style*="display: none"])');
+                count = visibleRows.length;
+            }
+            
+            const countElement = document.getElementById('transactionCount');
+            if (countElement) {
+                countElement.textContent = count;
+            }
+        }
+
+        // Add responsive behavior
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 1024) {
+                document.getElementById('sidebar').classList.add('collapsed');
+            } else {
+                document.getElementById('sidebar').classList.remove('collapsed');
+            }
+        });
+    </script>
 </body>
 </html>

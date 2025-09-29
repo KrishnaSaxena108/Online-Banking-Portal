@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Banking - Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Elite Banking Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <span class="icon">🏛️</span>
+                    <span class="text">Elite Banking</span>
+                </div>
+                <button type="button" class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- User Profile Section -->
+            <div class="sidebar-user">
+                <div class="user-avatar" th:text="${#strings.substring(session.currentUser ?: 'U', 0, 1).toUpperCase()}">U</div>
+                <div class="user-info">
+                    <div class="user-name" th:text="${session.currentUser ?: 'User'}">User</div>
+                    <div class="user-role">Premier Client</div>
+                </div>
+            </div>
+
+            <!-- Elite Navigation -->
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Banking</div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link active" onclick="showTab('overview')">
+                            <i class="nav-icon fas fa-chart-line"></i>
+                            <span class="nav-text">Overview</span>
+                        </button>
+                    </div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link" onclick="showTab('accounts')">
+                            <i class="nav-icon fas fa-university"></i>
+                            <span class="nav-text">Account Info</span>
+                        </button>
+                    </div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link" onclick="showTab('transfer')">
+                            <i class="nav-icon fas fa-paper-plane"></i>
+                            <span class="nav-text">Send Money</span>
+                        </button>
+                    </div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link" onclick="showTab('transactions')">
+                            <i class="nav-icon fas fa-list-alt"></i>
+                            <span class="nav-text">Transactions</span>
+                        </button>
+                    </div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link" onclick="showTab('deposit')">
+                            <i class="nav-icon fas fa-plus-circle"></i>
+                            <span class="nav-text">Deposit</span>
+                        </button>
+                    </div>
+                    <div class="nav-item">
+                        <button type="button" class="nav-link" onclick="showTab('withdraw')">
+                            <i class="nav-icon fas fa-minus-circle"></i>
+                            <span class="nav-text">Withdraw</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Services</div>
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-shield-alt"></i>
+                            <span class="nav-text">Security</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                            <span class="nav-text">Statements</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-cog"></i>
+                            <span class="nav-text">Settings</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="/logout" class="nav-link">
+                            <i class="nav-icon fas fa-sign-out-alt"></i>
+                            <span class="nav-text">Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Professional Header -->
+            <header class="main-header">
+                <h1 class="page-title">Elite Banking Dashboard</h1>
+                <div class="header-actions">
+                    <a href="#" class="header-btn">
+                        <i class="fas fa-bell"></i>
+                        Notifications
+                    </a>
+                    <a href="/logout" class="header-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </a>
+                </div>
+            </header>
+
+            <!-- Dynamic Content Area -->
+            <div class="content-area">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="tab-content active">
+                    <h2 class="content-title">Financial Overview</h2>
+                    <p class="content-subtitle">Comprehensive view of your banking portfolio</p>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card balance">
+                            <div class="stat-icon">💳</div>
+                            <div class="stat-value" th:text="'$' + ${balance ?: '0.00'}">$0.00</div>
+                            <div class="stat-label">Current Balance</div>
+                        </div>
+                        
+                        <div class="stat-card savings">
+                            <div class="stat-icon">🏦</div>
+                            <div class="stat-value">$15,750</div>
+                            <div class="stat-label">Savings Account</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-value">$2,340</div>
+                            <div class="stat-label">Monthly Income</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <div class="action-card" onclick="showTab('transfer')">
+                            <div class="action-icon">📤</div>
+                            <div class="action-title">Send Money</div>
+                            <div class="action-desc">Transfer funds instantly</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showTab('deposit')">
+                            <div class="action-icon">💰</div>
+                            <div class="action-title">Deposit</div>
+                            <div class="action-desc">Add funds to account</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showTab('withdraw')">
+                            <div class="action-icon">🏧</div>
+                            <div class="action-title">Withdraw</div>
+                            <div class="action-desc">Cash withdrawal</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showTab('transactions')">
+                            <div class="action-icon">📊</div>
+                            <div class="action-title">View Transactions</div>
+                            <div class="action-desc">Recent activity</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Info Tab -->
+                <div id="accounts-tab" class="tab-content">
+                    <h2 class="content-title">Account Information</h2>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Primary Checking Account</h3>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                            <div>
+                                <h4>Account Details</h4>
+                                <p><strong>Account Holder:</strong> <span th:text="${session.currentUser ?: 'User'}">User</span></p>
+                                <p><strong>Account Type:</strong> Premier Checking</p>
+                                <p><strong>Branch:</strong> Downtown Financial Center</p>
+                            </div>
+                            
+                            <div>
+                                <h4>Balance Information</h4>
+                                <p><strong>Available Balance:</strong> <span th:text="'$' + ${balance ?: '0.00'}">$0.00</span></p>
+                                <p><strong>Last Updated:</strong> Today, 2:45 PM</p>
+                                <p><strong>Interest Rate:</strong> 2.5% APY</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Send Money Tab -->
+                <div id="transfer-tab" class="tab-content">
+                    <h2 class="content-title">Send Money</h2>
+                    <div class="card">
+                        <form id="transferForm" action="/transfer" method="post">
+                            <div class="form-group">
+                                <label class="form-label" for="toAccount">Recipient Account</label>
+                                <input type="text" class="form-input" id="toAccount" name="toAccount" placeholder="Enter recipient account number" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="amount">Amount ($)</label>
+                                <input type="number" class="form-input" id="amount" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="description">Description (Optional)</label>
+                                <input type="text" class="form-input" id="description" name="description" placeholder="Payment description">
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Send Money
+                                </button>
+                                <button type="reset" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Transactions Tab -->
+                <div id="transactions-tab" class="tab-content">
+                    <h2 class="content-title">Recent Transactions</h2>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Sep 28, 2025</td>
+                                    <td>Online Purchase - Amazon</td>
+                                    <td>Debit</td>
+                                    <td style="color: var(--error);">-$45.99</td>
+                                    <td style="color: var(--success);">✓ Completed</td>
+                                </tr>
+                                <tr>
+                                    <td>Sep 27, 2025</td>
+                                    <td>Salary Deposit</td>
+                                    <td>Credit</td>
+                                    <td style="color: var(--success);">+$3,500.00</td>
+                                    <td style="color: var(--success);">✓ Completed</td>
+                                </tr>
+                                <tr>
+                                    <td>Sep 26, 2025</td>
+                                    <td>ATM Withdrawal</td>
+                                    <td>Debit</td>
+                                    <td style="color: var(--error);">-$200.00</td>
+                                    <td style="color: var(--success);">✓ Completed</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Deposit Tab -->
+                <div id="deposit-tab" class="tab-content">
+                    <h2 class="content-title">Deposit Funds</h2>
+                    <div class="card">
+                        <form id="depositForm" action="/deposit" method="post">
+                            <div class="form-group">
+                                <label class="form-label" for="deposit-amount">Deposit Amount ($)</label>
+                                <input type="number" class="form-input" id="deposit-amount" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="method">Deposit Method</label>
+                                <select class="form-input" id="method" name="method">
+                                    <option value="check">Check Deposit</option>
+                                    <option value="cash">Cash Deposit</option>
+                                    <option value="transfer">Bank Transfer</option>
+                                </select>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-plus-circle"></i>
+                                    Deposit Funds
+                                </button>
+                                <button type="reset" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Withdraw Tab -->
+                <div id="withdraw-tab" class="tab-content">
+                    <h2 class="content-title">Withdraw Funds</h2>
+                    <div class="card">
+                        <form id="withdrawForm" action="/withdraw" method="post">
+                            <div class="form-group">
+                                <label class="form-label" for="withdraw-amount">Withdrawal Amount ($)</label>
+                                <input type="number" class="form-input" id="withdraw-amount" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="withdraw-method">Withdrawal Method</label>
+                                <select class="form-input" id="withdraw-method" name="method">
+                                    <option value="atm">ATM Withdrawal</option>
+                                    <option value="check">Cashier's Check</option>
+                                    <option value="transfer">Bank Transfer</option>
+                                </select>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-minus-circle"></i>
+                                    Withdraw Funds
+                                </button>
+                                <button type="reset" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar Toggle Functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Tab Navigation
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all nav links
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+            
+            // Show selected tab
+            const targetTab = document.getElementById(tabName + '-tab');
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+            
+            // Add active class to clicked nav link
+            const clickedLink = event.target.closest('.nav-link');
+            if (clickedLink) {
+                clickedLink.classList.add('active');
+            }
+        }
+
+        // Auto-collapse sidebar on mobile
+        if (window.innerWidth <= 1024) {
+            document.getElementById('sidebar').classList.add('collapsed');
+        }
+
+        // Handle form submissions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add loading states to forms
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="loading"></span> Processing...';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+                        <a href="#" class="nav-link" onclick="showTab('transfer')">
+                            <i class="nav-icon fas fa-paper-plane"></i>
+                            <span class="nav-text">Send Money</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#" class="nav-link" onclick="showTab('transactions')">
+                            <i class="nav-icon fas fa-exchange-alt"></i>
+                            <span class="nav-text">Transactions</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Services</div>
+                    <div class="nav-item">
+                        <a href="#" class="nav-link" onclick="showTab('deposit')">
+                            <i class="nav-icon fas fa-plus-circle"></i>
+                            <span class="nav-text">Deposit</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#" class="nav-link" onclick="showTab('withdraw')">
+                            <i class="nav-icon fas fa-minus-circle"></i>
+                            <span class="nav-text">Withdraw</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <div class="nav-item">
+                        <a th:href="@{/logout}" class="nav-link">
+                            <i class="nav-icon fas fa-sign-out-alt"></i>
+                            <span class="nav-text">Sign Out</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Professional Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <h1 class="page-title">Executive Dashboard</h1>
+                    <div class="breadcrumb">
+                        <span>Banking</span> / <span>Dashboard</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <a href="#" class="header-btn">
+                            <i class="fas fa-bell"></i>
+                            Notifications
+                        </a>
+                        <a href="#" class="header-btn">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dynamic Content Area -->
+            <div class="content-area">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="tab-content active">
+                    <div class="content-header">
+                        <h2 class="content-title">Financial Overview</h2>
+                        <p class="content-subtitle">Comprehensive view of your banking portfolio</p>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card balance">
+                            <div class="stat-icon">💳</div>
+                            <div class="stat-value" th:text="'$' + ${balance ?: '0.00'}">$0.00</div>
+                            <div class="stat-label">Current Balance</div>
+                            <div class="stat-trend">
+                                <i class="fas fa-arrow-up"></i>
+                                +2.5% this month
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card savings">
+                            <div class="stat-icon">🏦</div>
+                            <div class="stat-value">$15,750</div>
+                            <div class="stat-label">Savings Account</div>
+                            <div class="stat-trend">
+                                <i class="fas fa-arrow-up"></i>
+                                +1.2% this month
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-value">$2,340</div>
+                            <div class="stat-label">Monthly Income</div>
+                            <div class="stat-trend">
+                                <i class="fas fa-arrow-up"></i>
+                                +5.7% this month
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <div class="action-card" onclick="showTab('transfer')">
+                            <div class="action-icon">📤</div>
+                            <div class="action-title">Send Money</div>
+                            <div class="action-desc">Transfer funds instantly</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showTab('deposit')">
+                            <div class="action-icon">💰</div>
+                            <div class="action-title">Deposit</div>
+                            <div class="action-desc">Add funds to account</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showTab('withdraw')">
+                            <div class="action-icon">🏧</div>
+                            <div class="action-title">Withdraw</div>
+                            <div class="action-desc">Cash withdrawal</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showTab('transactions')">
+                            <div class="action-icon">📊</div>
+                            <div class="action-title">View Transactions</div>
+                            <div class="action-desc">Recent activity</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Info Tab -->
+                <div id="accounts-tab" class="tab-content">
+                    <div class="content-header">
+                        <h2 class="content-title">Account Information</h2>
+                        <p class="content-subtitle">Detailed view of your banking accounts</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Primary Checking Account</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary btn-sm">Download Statement</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                            <div>
+                                <h4>Account Details</h4>
+                                <p><strong>Account Number:</strong> ****-****-****-1234</p>
+                                <p><strong>Account Type:</strong> Premier Checking</p>
+                                <p><strong>Account Holder:</strong> <span th:text="${session.currentUser}">User</span></p>
+                                <p><strong>Branch:</strong> Downtown Financial Center</p>
+                            </div>
+                            
+                            <div>
+                                <h4>Balance Information</h4>
+                                <p><strong>Available Balance:</strong> <span th:text="'$' + ${balance ?: '0.00'}">$0.00</span></p>
+                                <p><strong>Current Balance:</strong> <span th:text="'$' + ${balance ?: '0.00'}">$0.00</span></p>
+                                <p><strong>Last Updated:</strong> Today, 2:45 PM</p>
+                                <p><strong>Interest Rate:</strong> 2.5% APY</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Send Money Tab -->
+                <div id="transfer-tab" class="tab-content">
+                    <div class="content-header">
+                        <h2 class="content-title">Send Money</h2>
+                        <p class="content-subtitle">Transfer funds securely and instantly</p>
+                    </div>
+
+                    <div class="card">
+                        <form id="transferForm" onsubmit="handleTransfer(event)">
+                            <div class="form-group">
+                                <label class="form-label">Recipient Account</label>
+                                <input type="text" class="form-input" name="toAccount" placeholder="Enter recipient account number" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Amount ($)</label>
+                                <input type="number" class="form-input" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Description (Optional)</label>
+                                <input type="text" class="form-input" name="description" placeholder="Payment description">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Transfer Type</label>
+                                <select class="form-input" name="transferType">
+                                    <option value="instant">Instant Transfer</option>
+                                    <option value="standard">Standard Transfer (1-2 days)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Send Money
+                                </button>
+                                <button type="reset" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Transactions Tab -->
+                <div id="transactions-tab" class="tab-content">
+                    <div class="content-header">
+                        <h2 class="content-title">Recent Transactions</h2>
+                        <p class="content-subtitle">View your transaction history</p>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Sep 28, 2025</td>
+                                    <td>Online Purchase - Amazon</td>
+                                    <td>Debit</td>
+                                    <td>-$45.99</td>
+                                    <td><span class="status-badge status-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Sep 27, 2025</td>
+                                    <td>Salary Deposit</td>
+                                    <td>Credit</td>
+                                    <td>+$3,500.00</td>
+                                    <td><span class="status-badge status-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Sep 26, 2025</td>
+                                    <td>ATM Withdrawal</td>
+                                    <td>Debit</td>
+                                    <td>-$200.00</td>
+                                    <td><span class="status-badge status-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Sep 25, 2025</td>
+                                    <td>Transfer to Savings</td>
+                                    <td>Transfer</td>
+                                    <td>-$1,000.00</td>
+                                    <td><span class="status-badge status-pending">Processing</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Deposit Tab -->
+                <div id="deposit-tab" class="tab-content">
+                    <div class="content-header">
+                        <h2 class="content-title">Deposit Funds</h2>
+                        <p class="content-subtitle">Add money to your account</p>
+                    </div>
+
+                    <div class="card">
+                        <form id="depositForm" onsubmit="handleDeposit(event)">
+                            <div class="form-group">
+                                <label class="form-label">Deposit Amount ($)</label>
+                                <input type="number" class="form-input" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Deposit Method</label>
+                                <select class="form-input" name="method">
+                                    <option value="check">Check Deposit</option>
+                                    <option value="cash">Cash Deposit</option>
+                                    <option value="transfer">Bank Transfer</option>
+                                    <option value="wire">Wire Transfer</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Reference Number (Optional)</label>
+                                <input type="text" class="form-input" name="reference" placeholder="Check number or reference">
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-plus-circle"></i>
+                                    Deposit Funds
+                                </button>
+                                <button type="reset" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Withdraw Tab -->
+                <div id="withdraw-tab" class="tab-content">
+                    <div class="content-header">
+                        <h2 class="content-title">Withdraw Funds</h2>
+                        <p class="content-subtitle">Withdraw money from your account</p>
+                    </div>
+
+                    <div class="card">
+                        <form id="withdrawForm" onsubmit="handleWithdraw(event)">
+                            <div class="form-group">
+                                <label class="form-label">Withdrawal Amount ($)</label>
+                                <input type="number" class="form-input" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Withdrawal Method</label>
+                                <select class="form-input" name="method">
+                                    <option value="atm">ATM Withdrawal</option>
+                                    <option value="check">Cashier's Check</option>
+                                    <option value="transfer">Bank Transfer</option>
+                                    <option value="wire">Wire Transfer</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Purpose (Optional)</label>
+                                <input type="text" class="form-input" name="purpose" placeholder="Purpose of withdrawal">
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-minus-circle"></i>
+                                    Withdraw Funds
+                                </button>
+                                <button type="reset" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar Toggle Functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Tab Navigation
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all nav links
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active class to clicked nav link
+            event.target.closest('.nav-link').classList.add('active');
+        }
+
+        // Form Handlers
+        async function handleTransfer(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            try {
+                const response = await fetch('/transfer', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    alert('Transfer successful!');
+                    event.target.reset();
+                    showTab('overview');
+                } else {
+                    alert('Transfer failed. Please try again.');
+                }
+            } catch (error) {
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        async function handleDeposit(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            try {
+                const response = await fetch('/deposit', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    alert('Deposit successful!');
+                    event.target.reset();
+                    showTab('overview');
+                } else {
+                    alert('Deposit failed. Please try again.');
+                }
+            } catch (error) {
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        async function handleWithdraw(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            try {
+                const response = await fetch('/withdraw', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    alert('Withdrawal successful!');
+                    event.target.reset();
+                    showTab('overview');
+                } else {
+                    alert('Withdrawal failed. Please try again.');
+                }
+            } catch (error) {
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        // Auto-collapse sidebar on mobile
+        if (window.innerWidth <= 1024) {
+            document.getElementById('sidebar').classList.add('open');
+        }
+    </script>
+</body>
+</html>
+
+            <a href="/transactions" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="action-title">Transaction History</h3>
+                <p class="action-desc">Comprehensive transaction records and analytics</p>
+            </a>
+
+            <a href="#" class="action-card" onclick="showAlert('Transfer feature coming soon!')">
+                <div class="action-icon">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <h3 class="action-title">Fund Transfer</h3>
+                <p class="action-desc">Secure money transfers and payments</p>
+            </a>
+
+            <a href="#" class="action-card" onclick="showAlert('Investment portal coming soon!')">
+                <div class="action-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <h3 class="action-title">Investment Portfolio</h3>
+                <p class="action-desc">Manage investments and market insights</p>
+            </a>
+        </div>
+
+        <!-- Banking Statistics -->
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                </div>
+                <div class="stat-value">$90,000</div>
+                <div class="stat-label">Total Portfolio Value</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +2.5% this month
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                </div>
+                <div class="stat-value">2</div>
+                <div class="stat-label">Active Accounts</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-check-circle"></i>
+                    All accounts verified
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                </div>
+                <div class="stat-value">47</div>
+                <div class="stat-label">Monthly Transactions</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +12% increase
+                </div>
+            </div>
+        </div>
+
+        <!-- Banking Services -->
+        <div class="card">
+            <h2>Premium Banking Services</h2>
+            <div class="quick-actions" style="margin-top: 2rem;">
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="action-title">Security Center</h3>
+                    <p class="action-desc">Manage your security settings and two-factor authentication</p>
+                </div>
+
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <h3 class="action-title">Statements</h3>
+                    <p class="action-desc">Download monthly and annual account statements</p>
+                </div>
+
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3 class="action-title">Customer Support</h3>
+                    <p class="action-desc">24/7 premium support for all your banking needs</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity Preview -->
+        <div class="card">
+            <h3>Recent Account Activity</h3>
+            <div class="table-container" style="margin-top: 1.5rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-calendar"></i> Date</th>
+                            <th><i class="fas fa-tag"></i> Transaction Type</th>
+                            <th><i class="fas fa-dollar-sign"></i> Amount</th>
+                            <th><i class="fas fa-info-circle"></i> Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Today, 2:30 PM</td>
+                            <td>Account Balance Inquiry</td>
+                            <td>-</td>
+                            <td><span style="color: var(--success); font-weight: 600;">✓ Completed</span></td>
+                        </tr>
+                        <tr>
+                            <td>Yesterday, 10:15 AM</td>
+                            <td>Salary Deposit</td>
+                            <td style="color: var(--success); font-weight: 600;">+$5,200</td>
+                            <td><span style="color: var(--success); font-weight: 600;">✓ Processed</span></td>
+                        </tr>
+                        <tr>
+                            <td>Dec 15, 4:22 PM</td>
+                            <td>Investment Transfer</td>
+                            <td style="color: var(--error); font-weight: 600;">-$1,000</td>
+                            <td><span style="color: var(--success); font-weight: 600;">✓ Completed</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <a href="/transactions" class="btn btn-primary">
+                    <i class="fas fa-list"></i> View All Transactions
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Premier Banking Corporation. All rights reserved. | 
+            <a href="#" style="color: var(--primary-blue);">Privacy Policy</a> | 
+            <a href="#" style="color: var(--primary-blue);">Terms of Service</a> | 
+            <a href="#" style="color: var(--primary-blue);">Contact Support</a></p>
+        </div>
+    </footer>
+
+    <script>
+        function showAlert(message) {
+            // Create professional notification
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-info';
+            alert.innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                <span>${message}</span>
+            `;
+            
+            // Add to page
+            const container = document.querySelector('.container');
+            container.insertBefore(alert, container.firstChild);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+
+        // Add smooth scrolling for better UX
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Add loading animation to buttons
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.type === 'submit') {
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<span class="loading"></span> Processing...';
+                    this.disabled = true;
+                    
+                    // Re-enable after form submission
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                    }, 2000);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

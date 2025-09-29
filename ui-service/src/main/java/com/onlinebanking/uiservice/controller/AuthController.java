@@ -1,19 +1,15 @@
 package com.onlinebanking.uiservice.controller;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-
-import com.onlinebanking.uiservice.service.UserServiceClient;
-import com.onlinebanking.uiservice.service.UserServiceClientWithCircuitBreaker;
-import com.onlinebanking.uiservice.service.AccountServiceClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.RestTemplate;
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,125 +18,131 @@ import java.util.Map;
 public class AuthController {
 
     @Autowired
-    private UserServiceClient userServiceClient;
+    private RestTemplate restTemplate;
 
-    @Autowired
-    private UserServiceClientWithCircuitBreaker userServiceClientWithCircuitBreaker;
+    @GetMapping("/")
+    public String home() {
+        return "redirect:/login";
+    }
 
-    @Autowired
-    private AccountServiceClient accountServiceClient;
-
-    @GetMapping({"/", "/login"})
-    public String loginPage() {
+    @GetMapping("/login")
+    public String login() {
         return "login";
     }
 
-    @GetMapping("/dashboard")
-    public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model, HttpSession session) {
-        if (principal != null) {
-            // OAuth2 user
-            model.addAttribute("name", principal.getAttribute("name"));
-            model.addAttribute("email", principal.getAttribute("email"));
-            model.addAttribute("picture", principal.getAttribute("picture"));
-            model.addAttribute("loginType", "oauth2");
-        } else {
-            // Traditional login user
-            String username = (String) session.getAttribute("username");
-            if (username != null) {
-                model.addAttribute("name", username);
-                model.addAttribute("loginType", "traditional");
-            }
-        }
-        return "dashboard";
-    }
-
-    @PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password, Model model, HttpSession session) {
-        Map<String, String> req = new HashMap<>();
-        req.put("username", username);
-        req.put("password", password);
-        
-        // Use circuit breaker for login
-        Map<String, Object> response = userServiceClientWithCircuitBreaker.loginWithFallback(req);
-        
-        if (response.containsKey("token")) {
-            // Store username in session
-            session.setAttribute("username", username);
-            return "redirect:/dashboard";
-        } else {
-            // Handle circuit breaker open state with special message
-            if (response.containsKey("circuitBreakerOpen") && (Boolean) response.get("circuitBreakerOpen")) {
-                model.addAttribute("error", "🔴 " + response.get("error"));
-                model.addAttribute("circuitBreakerError", true);
-            } else {
-                model.addAttribute("error", response.getOrDefault("error", "Login failed"));
-            }
-            return "login";
-        }
-    }
-
     @GetMapping("/register")
-    public String registerPage() {
+    public String register() {
         return "register";
     }
 
-    @PostMapping("/register")
-    public String register(@RequestParam String username, @RequestParam String password, @RequestParam String accountNumber, Model model) {
-        Map<String, String> req = new HashMap<>();
-        req.put("username", username);
-        req.put("password", password);
-        req.put("accountNumber", accountNumber);
-        
-        // Use circuit breaker for registration
-        Map<String, Object> response = userServiceClientWithCircuitBreaker.registerWithFallback(req);
-        
-        if (response.containsKey("success") && (Boolean)response.get("success")) {
-            // Create account in account-service
-            Map<String, Object> accountReq = new HashMap<>();
-            accountReq.put("accountNumber", accountNumber);
-            accountReq.put("accountHolderName", username);
-            accountReq.put("balance", 0.0);
-            accountReq.put("username", username);
-            try {
-                accountServiceClient.createAccount(accountReq);
-            } catch (Exception ex) {
-                // Optionally log or handle account creation failure
-                model.addAttribute("warning", "User registered but account creation failed. Please contact support.");
+    @PostMapping("/login")
+    public String loginUser(@RequestParam String username, 
+                           @RequestParam String password,
+                           HttpSession session, 
+                           Model model) {
+        try {
+            // Create login request
+            Map<String, String> loginRequest = new HashMap<>();
+            loginRequest.put("username", username);
+            loginRequest.put("password", password);
+
+            // Call user service for authentication
+            String userServiceUrl = "http://localhost:8084/api/login";
+            ResponseEntity<Map> response = restTemplate.postForEntity(userServiceUrl, loginRequest, Map.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> responseBody = response.getBody();
+                if (responseBody != null && responseBody.containsKey("token")) {
+                    // Login successful - user service returns JWT token
+                    session.setAttribute("username", username);
+                    session.setAttribute("authenticated", true);
+                    session.setAttribute("token", responseBody.get("token")); // Store JWT token
+                    return "redirect:/dashboard";
+                } else if (responseBody != null && responseBody.containsKey("error")) {
+                    // Specific error from user service
+                    String errorMsg = (String) responseBody.get("error");
+                    if (errorMsg.toLowerCase().contains("password")) {
+                        model.addAttribute("error", "❌ Incorrect password. Please check your password and try again.");
+                    } else if (errorMsg.toLowerCase().contains("username") || errorMsg.toLowerCase().contains("user")) {
+                        model.addAttribute("error", "❌ Username not found. Please check your username or create a new account.");
+                    } else {
+                        model.addAttribute("error", "❌ " + errorMsg);
+                    }
+                    return "login";
+                }
+            } else if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                model.addAttribute("error", "❌ Invalid credentials. Please check your username and password.");
+                return "login";
             }
-            return "redirect:/login";
-        } else {
-            // Handle circuit breaker open state with special message
-            if (response.containsKey("circuitBreakerOpen") && (Boolean) response.get("circuitBreakerOpen")) {
-                model.addAttribute("error", "🔴 " + response.get("error"));
-                model.addAttribute("circuitBreakerError", true);
+        } catch (Exception e) {
+            if (e.getMessage() != null && e.getMessage().contains("401")) {
+                model.addAttribute("error", "❌ Invalid username or password. Please try again.");
+            } else if (e.getMessage() != null && e.getMessage().contains("Connection")) {
+                model.addAttribute("error", "❌ Service temporarily unavailable. Please try again later.");
             } else {
-                model.addAttribute("error", response.getOrDefault("error", "Registration failed"));
+                model.addAttribute("error", "❌ Login failed. Please check your credentials and try again.");
+            }
+            return "login";
+        }
+        
+        model.addAttribute("error", "❌ Invalid credentials. Please verify your username and password.");
+        return "login";
+    }
+
+    @PostMapping("/register")
+    public String registerUser(@RequestParam String username, 
+                              @RequestParam String password,
+                              @RequestParam String accountNumber,
+                              Model model) {
+        try {
+            // Create registration request
+            Map<String, String> registerRequest = new HashMap<>();
+            registerRequest.put("username", username);
+            registerRequest.put("password", password);
+            registerRequest.put("accountNumber", accountNumber);
+
+            // Call user service for registration
+            String userServiceUrl = "http://localhost:8084/api/register";
+            ResponseEntity<Map> response = restTemplate.postForEntity(userServiceUrl, registerRequest, Map.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> responseBody = response.getBody();
+                if (responseBody != null && responseBody.containsKey("success") && (Boolean) responseBody.get("success")) {
+                    model.addAttribute("success", "✅ Registration successful! Please login with your credentials.");
+                    return "login";
+                } else if (responseBody != null && responseBody.containsKey("error")) {
+                    // Specific error from user service
+                    String errorMsg = (String) responseBody.get("error");
+                    if (errorMsg.toLowerCase().contains("username") && errorMsg.toLowerCase().contains("exist")) {
+                        model.addAttribute("error", "❌ Username already exists. Please choose a different username.");
+                    } else if (errorMsg.toLowerCase().contains("account") && errorMsg.toLowerCase().contains("exist")) {
+                        model.addAttribute("error", "❌ Account number already exists. Please use a different account number.");
+                    } else if (errorMsg.toLowerCase().contains("invalid")) {
+                        model.addAttribute("error", "❌ Invalid input. Please check your information and try again.");
+                    } else {
+                        model.addAttribute("error", "❌ " + errorMsg);
+                    }
+                    return "register";
+                }
+            } else if (response.getStatusCode() == HttpStatus.CONFLICT) {
+                model.addAttribute("error", "❌ Account already exists. Please use different credentials.");
+                return "register";
+            }
+        } catch (Exception e) {
+            if (e.getMessage() != null && e.getMessage().contains("409")) {
+                model.addAttribute("error", "❌ Username or account number already exists. Please try different values.");
+            } else if (e.getMessage() != null && e.getMessage().contains("400")) {
+                model.addAttribute("error", "❌ Invalid information provided. Please check your input and try again.");
+            } else if (e.getMessage() != null && e.getMessage().contains("Connection")) {
+                model.addAttribute("error", "❌ Service temporarily unavailable. Please try again later.");
+            } else {
+                model.addAttribute("error", "❌ Registration failed. Please check your information and try again.");
             }
             return "register";
         }
-    }
-
-    // Circuit breaker monitoring endpoint for user service
-    @GetMapping("/user-service/circuit-breaker/status")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> getUserServiceCircuitBreakerStatus() {
-        Map<String, Object> status = new HashMap<>();
         
-        // Get user service circuit breaker status
-        String state = userServiceClientWithCircuitBreaker.getCircuitBreakerState();
-        io.github.resilience4j.circuitbreaker.CircuitBreaker.Metrics metrics = userServiceClientWithCircuitBreaker.getCircuitBreakerMetrics();
-        
-        Map<String, Object> userServiceStatus = new HashMap<>();
-        userServiceStatus.put("state", state);
-        userServiceStatus.put("failureRate", metrics.getFailureRate());
-        userServiceStatus.put("numberOfBufferedCalls", metrics.getNumberOfBufferedCalls());
-        userServiceStatus.put("numberOfFailedCalls", metrics.getNumberOfFailedCalls());
-        userServiceStatus.put("numberOfSuccessfulCalls", metrics.getNumberOfSuccessfulCalls());
-        
-        status.put("user-service", userServiceStatus);
-        status.put("timestamp", java.time.LocalDateTime.now());
-        
-        return ResponseEntity.ok(status);
+        model.addAttribute("error", "❌ Registration failed. Please verify your information and try again.");
+        return "register";
     }
 
     @GetMapping("/logout")

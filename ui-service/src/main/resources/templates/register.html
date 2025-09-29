@@ -1,57 +1,240 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureBank - Create Account</title>
+    <title>Elite Banking - Create Premium Account</title>
     <link rel="stylesheet" th:href="@{/css/style.css}" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏦</text></svg>" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <div class="container">
-        <div class="card auth-card float">
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <div class="logo" style="font-size: 2.5rem; margin-bottom: 0.5rem;">🏦 SecureBank</div>
-                <p style="color: #666; font-size: 1.1rem;">Join thousands of satisfied customers</p>
-            </div>
-            
-            <form method="post" action="/register">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required 
-                           placeholder="Choose a unique username" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required 
-                           placeholder="Create a strong password" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="accountNumber">Account Number</label>
-                    <input type="text" id="accountNumber" name="accountNumber" required 
-                           placeholder="Enter your account number" />
-                </div>
-                
-                <button type="submit" class="btn btn-primary btn-full">
-                    Create Account
-                </button>
-            </form>
-            
-            <div th:if="${error}" class="alert alert-error">
-                <strong>Error:</strong> <span th:text="${error}"></span>
-            </div>
-            
-            <div class="auth-link">
-                Already have an account? 
-                <a th:href="@{/login}">Sign in here</a>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1 class="auth-logo">Elite Banking</h1>
+            <p class="auth-subtitle">Join our exclusive premier banking experience</p>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="alert alert-error" role="alert" aria-live="assertive">
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+            <div>
+                <strong>Registration Error</strong><br>
+                <span th:text="${error}">Error message</span>
             </div>
         </div>
         
-        <div class="footer">
-            <p>&copy; 2024 SecureBank. Your trusted financial partner.</p>
+        <div th:if="${success}" class="alert alert-success" role="alert" aria-live="polite">
+            <i class="fas fa-check-circle" aria-hidden="true"></i>
+            <div>
+                <strong>Account Created Successfully</strong><br>
+                <span th:text="${success}">Success message</span>
+            </div>
+        </div>
+
+        <!-- Premium Registration Form -->
+        <form th:action="@{/register}" method="post" aria-labelledby="register-title">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" 
+                       id="username" 
+                       name="username" 
+                       class="form-input with-icon" 
+                       placeholder="Choose a unique username" 
+                       required 
+                       autocomplete="username"
+                       aria-describedby="username-help"
+                       minlength="3"
+                       maxlength="20">
+                <i class="form-icon fas fa-user" aria-hidden="true"></i>
+                <div id="username-help" class="form-help">3-20 characters, letters and numbers only</div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       class="form-input with-icon" 
+                       placeholder="Create a strong password" 
+                       required 
+                       autocomplete="new-password"
+                       aria-describedby="password-help"
+                       minlength="4">
+                <i class="form-icon fas fa-lock" aria-hidden="true"></i>
+                <div id="password-help" class="form-help">Minimum 4 characters for demo purposes</div>
+            </div>
+
+            <div class="form-group">
+                <label for="accountNumber" class="form-label">Account Number</label>
+                <input type="text" 
+                       id="accountNumber" 
+                       name="accountNumber" 
+                       class="form-input with-icon" 
+                       placeholder="Enter your account number" 
+                       required 
+                       aria-describedby="account-help"
+                       pattern="[0-9]+"
+                       minlength="6"
+                       maxlength="12">
+                <i class="form-icon fas fa-credit-card" aria-hidden="true"></i>
+                <div id="account-help" class="form-help">6-12 digit account number</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full btn-lg" aria-describedby="register-desc">
+                <i class="fas fa-user-plus" aria-hidden="true"></i>
+                Create Premium Account
+            </button>
+            <div id="register-desc" class="sr-only">Submit form to create your banking account</div>
+        </form>
+
+        <!-- Account Benefits -->
+        <div class="auth-info">
+            <div class="benefits-list">
+                <h3><i class="fas fa-star" aria-hidden="true"></i> Premium Benefits</h3>
+                <ul>
+                    <li><i class="fas fa-check" aria-hidden="true"></i> 24/7 Priority Support</li>
+                    <li><i class="fas fa-check" aria-hidden="true"></i> Advanced Security Features</li>
+                    <li><i class="fas fa-check" aria-hidden="true"></i> Personalized Banking Experience</li>
+                    <li><i class="fas fa-check" aria-hidden="true"></i> Exclusive Investment Opportunities</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Professional Links -->
+        <div class="auth-link">
+            <p>Already have an account? 
+               <a th:href="@{/login}" aria-label="Sign in to existing account">Sign In Here</a>
+            </p>
+        </div>
+
+        <div class="auth-link">
+            <p>
+                <a href="#" aria-label="View terms of service">Terms of Service</a> | 
+                <a href="#" aria-label="Read privacy policy">Privacy Policy</a> | 
+                <a href="#" aria-label="Contact customer support">Need Help?</a>
+            </p>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="security-notice">
+            <div class="security-info">
+                <h4><i class="fas fa-shield-alt" aria-hidden="true"></i> Your Data is Protected</h4>
+                <p>We use industry-standard encryption and never share your personal information with third parties.</p>
+            </div>
         </div>
     </div>
+
+    <script>
+        // Add form validation and enhancement
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Basic client-side validation
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const accountNumber = document.getElementById('accountNumber').value;
+            
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters long');
+                e.preventDefault();
+                return;
+            }
+            
+            if (password.length < 4) {
+                alert('Password must be at least 4 characters long');
+                e.preventDefault();
+                return;
+            }
+            
+            if (!/^\d+$/.test(accountNumber) || accountNumber.length < 6) {
+                alert('Account number must be at least 6 digits');
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.innerHTML = '<span class="loading"></span> Creating Account...';
+            submitBtn.disabled = true;
+            submitBtn.setAttribute('aria-busy', 'true');
+            
+            // Reset if there's an error (page doesn't redirect)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                submitBtn.removeAttribute('aria-busy');
+            }, 5000);
+        });
+
+        // Real-time validation feedback
+        document.getElementById('username').addEventListener('input', function() {
+            const helpText = document.getElementById('username-help');
+            if (this.value.length < 3) {
+                helpText.style.color = 'var(--error)';
+                helpText.textContent = 'Username too short (minimum 3 characters)';
+            } else if (!/^[a-zA-Z0-9]+$/.test(this.value)) {
+                helpText.style.color = 'var(--error)';
+                helpText.textContent = 'Only letters and numbers allowed';
+            } else {
+                helpText.style.color = 'var(--success)';
+                helpText.textContent = 'Valid username ✓';
+            }
+        });
+
+        document.getElementById('password').addEventListener('input', function() {
+            const helpText = document.getElementById('password-help');
+            if (this.value.length < 4) {
+                helpText.style.color = 'var(--error)';
+                helpText.textContent = 'Password too short (minimum 4 characters)';
+            } else {
+                helpText.style.color = 'var(--success)';
+                helpText.textContent = 'Password strength: Good ✓';
+            }
+        });
+
+        document.getElementById('accountNumber').addEventListener('input', function() {
+            const helpText = document.getElementById('account-help');
+            if (!/^\d*$/.test(this.value)) {
+                this.value = this.value.replace(/\D/g, ''); // Remove non-digits
+            }
+            
+            if (this.value.length < 6) {
+                helpText.style.color = 'var(--error)';
+                helpText.textContent = 'Account number too short (minimum 6 digits)';
+            } else {
+                helpText.style.color = 'var(--success)';
+                helpText.textContent = 'Valid account number ✓';
+            }
+        });
+
+        // Add focus enhancement for accessibility
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Keyboard navigation enhancement
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                const inputs = ['username', 'password', 'accountNumber'];
+                const currentIndex = inputs.indexOf(e.target.id);
+                
+                if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+                    document.getElementById(inputs[currentIndex + 1]).focus();
+                    e.preventDefault();
+                } else if (e.target.id === 'accountNumber') {
+                    document.querySelector('button[type="submit"]').click();
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
