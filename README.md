@@ -229,9 +229,8 @@ Default port configuration:
 
 ## 🔒 Security Features
 
-- **JWT Authentication** - Stateless token-based authentication
+- **Session-based Authentication** - Secure user authentication and session management
 - **Role-based Authorization** - Secure access control
-- **Session Management** - Secure session handling
 - **Input Validation** - Protection against malicious inputs
 - **HTTPS Support** - Secure communication (configurable)
 
