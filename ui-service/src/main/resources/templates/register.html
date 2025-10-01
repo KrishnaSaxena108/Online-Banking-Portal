@@ -67,16 +67,15 @@
 
             <div class="form-group">
                 <label for="accountNumber" class="form-label">Account Number</label>
-                <input type="text" 
+                <input type="number" 
                        id="accountNumber" 
                        name="accountNumber" 
                        class="form-input with-icon" 
                        placeholder="Enter your account number" 
                        required 
                        aria-describedby="account-help"
-                       pattern="[0-9]+"
-                       minlength="6"
-                       maxlength="12">
+                       min="100000"
+                       max="999999999999">
                 <i class="form-icon fas fa-credit-card" aria-hidden="true"></i>
                 <div id="account-help" class="form-help">6-12 digit account number</div>
             </div>
@@ -135,6 +134,13 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const accountNumber = document.getElementById('accountNumber').value;
+            
+            // Debug logging
+            console.log('Form submission attempt:', {
+                username: username,
+                password: password.length > 0 ? '[password provided]' : '[no password]',
+                accountNumber: accountNumber
+            });
             
             if (username.length < 3) {
                 alert('Username must be at least 3 characters long');
@@ -195,7 +201,10 @@
 
         document.getElementById('accountNumber').addEventListener('input', function() {
             const helpText = document.getElementById('account-help');
+            console.log('Account number input received:', this.value);
+            
             if (!/^\d*$/.test(this.value)) {
+                console.log('Non-digit characters detected, filtering...');
                 this.value = this.value.replace(/\D/g, ''); // Remove non-digits
             }
             
@@ -206,6 +215,15 @@
                 helpText.style.color = 'var(--success)';
                 helpText.textContent = 'Valid account number ✓';
             }
+        });
+
+        // Debug: Test if account number field is accessible
+        document.getElementById('accountNumber').addEventListener('focus', function() {
+            console.log('Account number field focused');
+        });
+        
+        document.getElementById('accountNumber').addEventListener('click', function() {
+            console.log('Account number field clicked');
         });
 
         // Add focus enhancement for accessibility
